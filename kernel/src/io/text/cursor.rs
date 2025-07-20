@@ -57,7 +57,7 @@ impl Cursor {
                     CURSOR.dy = 0;
                 } else {
                     CURSOR.dy += 1;
-                    CURSOR.ptr = CURSOR.ptr.add(screen::stride() - font::WIDTH + 1);
+                    CURSOR.ptr = CURSOR.ptr.add(screen::stride()).sub(font::WIDTH).add(1);
                 }
             } else {
                 CURSOR.dx += 1;
@@ -142,7 +142,9 @@ impl Cursor {
                     CURSOR.y += 1;
                     CURSOR.ptr = CURSOR
                         .ptr
-                        .add(screen::MARGIN + screen::stride() - screen::width() + screen::MARGIN);
+                        .add(screen::MARGIN)
+                        .add(screen::stride() - screen::width())
+                        .add(screen::MARGIN);
                 }
                 CURSOR.ptr = CURSOR.ptr.add(1);
             } else {
@@ -227,7 +229,9 @@ impl Cursor {
                 CURSOR.y -= 1;
                 CURSOR.ptr = CURSOR
                     .ptr
-                    .sub(screen::MARGIN + screen::stride() - screen::width() + screen::MARGIN)
+                    .sub(screen::MARGIN)
+                    .add(screen::stride() - screen::width())
+                    .add(screen::MARGIN)
                     .sub(font::HEIGHT * screen::stride())
                     .add(screen::stride());
             }
