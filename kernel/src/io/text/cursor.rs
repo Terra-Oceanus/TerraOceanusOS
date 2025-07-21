@@ -149,11 +149,7 @@ impl Cursor {
                 CURSOR.ptr = CURSOR.ptr.add(1);
             } else {
                 CURSOR.x += 1;
-                CURSOR.ptr = CURSOR
-                    .ptr
-                    .sub(font::HEIGHT * screen::stride())
-                    .add(screen::stride())
-                    .add(1);
+                CURSOR.ptr = CURSOR.ptr.sub((font::HEIGHT - 1) * screen::stride()).add(1);
             }
         }
         Self::write_cache();
@@ -225,18 +221,19 @@ impl Cursor {
                 if CURSOR.y == 0 {
                     return;
                 }
-                CURSOR.x = Self::max_x();
+                CURSOR.x = Self::max_x() - 1;
                 CURSOR.y -= 1;
                 CURSOR.ptr = CURSOR
                     .ptr
                     .sub(screen::MARGIN)
-                    .add(screen::stride() - screen::width())
-                    .add(screen::MARGIN)
-                    .sub(font::HEIGHT * screen::stride())
-                    .add(screen::stride());
+                    .sub(screen::stride() - screen::width())
+                    .sub(screen::MARGIN)
+                    .sub((font::HEIGHT - 1) * screen::stride())
+                    .sub(font::WIDTH);
+            } else {
+                CURSOR.x -= 1;
+                CURSOR.ptr = CURSOR.ptr.sub(font::WIDTH);
             }
-            CURSOR.x -= 1;
-            CURSOR.ptr = CURSOR.ptr.sub(font::WIDTH);
         });
     }
 
