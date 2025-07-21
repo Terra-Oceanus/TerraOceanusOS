@@ -239,9 +239,22 @@ impl Cursor {
 
     pub fn right() {
         Self::wrapper(|| unsafe {
-            if CURSOR.y != 0 {
-                CURSOR.y -= 1;
-                CURSOR.ptr = CURSOR.ptr.sub(font::HEIGHT * screen::stride());
+            if CURSOR.x + 1 == Self::max_x() {
+                if CURSOR.y + 1 == Self::max_y() {
+                    return;
+                }
+                CURSOR.x = 0;
+                CURSOR.y += 1;
+                CURSOR.ptr = CURSOR
+                    .ptr
+                    .add(font::WIDTH)
+                    .add(screen::MARGIN)
+                    .add(screen::stride() - screen::width())
+                    .add(screen::MARGIN)
+                    .add((font::HEIGHT - 1) * screen::stride());
+            } else {
+                CURSOR.x += 1;
+                CURSOR.ptr = CURSOR.ptr.add(font::WIDTH);
             }
         });
     }
