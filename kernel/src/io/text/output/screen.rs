@@ -46,7 +46,7 @@ pub fn up() {
             .add(MARGIN);
         for _ in MARGIN..(HEIGHT - MARGIN) {
             for _ in MARGIN..(WIDTH - MARGIN) {
-                ptr.write_volatile(ptr.add((font::HEIGHT * STRIDE) as usize).read_volatile());
+                ptr.write_volatile(ptr.add(font::HEIGHT * STRIDE).read_volatile());
                 ptr = ptr.add(1);
             }
             ptr = ptr.add(MARGIN).add(STRIDE - WIDTH).add(MARGIN);
