@@ -2,81 +2,69 @@
 
 use super::{super::super::super::port, Cursor};
 
-pub fn map(byte: u8) -> &'static str {
+pub fn map(byte: u8) {
     match byte {
-        0x02 => "1",
-        0x03 => "2",
-        0x04 => "3",
-        0x05 => "4",
-        0x06 => "5",
-        0x07 => "6",
-        0x08 => "7",
-        0x09 => "8",
-        0x0A => "9",
-        0x0B => "0",
-        0x0C => "-",
-        0x0D => "=",
-        0x0E => {
-            Cursor::backspace();
-            ""
-        }
-        0x0F => {
-            Cursor::tab();
-            ""
-        }
-        0x10 => "Q",
-        0x11 => "W",
-        0x12 => "E",
-        0x13 => "R",
-        0x14 => "T",
-        0x15 => "Y",
-        0x16 => "U",
-        0x17 => "I",
-        0x18 => "O",
-        0x19 => "P",
-        0x1A => "[",
-        0x1B => "]",
-        0x1C => {
-            Cursor::enter();
-            ""
-        }
-        0x1E => "A",
-        0x1F => "S",
-        0x20 => "D",
-        0x21 => "F",
-        0x22 => "G",
-        0x23 => "H",
-        0x24 => "J",
-        0x25 => "K",
-        0x26 => "L",
-        0x27 => ";",
-        0x28 => "\"",
-        0x29 => "`",
-        0x2B => "\\",
-        0x2C => "Z",
-        0x2D => "X",
-        0x2E => "C",
-        0x2F => "V",
-        0x30 => "B",
-        0x31 => "N",
-        0x32 => "M",
-        0x33 => ",",
-        0x34 => ".",
-        0x35 => "/",
-        0x39 => " ",
-        0xE0 => {
-            match port::in_byte(port::PS2_DATA) {
-                0x47 => Cursor::home(),
-                0x48 => Cursor::up(),
-                0x4B => Cursor::left(),
-                0x4D => Cursor::right(),
-                0x4F => Cursor::end(),
-                0x50 => Cursor::down(),
-                0x53 => Cursor::delete(),
-                _ => {}
-            };
-            ""
-        }
-        _ => "",
+        0x02 => Cursor::out_char('1'),
+        0x03 => Cursor::out_char('2'),
+        0x04 => Cursor::out_char('3'),
+        0x05 => Cursor::out_char('4'),
+        0x06 => Cursor::out_char('5'),
+        0x07 => Cursor::out_char('6'),
+        0x08 => Cursor::out_char('7'),
+        0x09 => Cursor::out_char('8'),
+        0x0A => Cursor::out_char('9'),
+        0x0B => Cursor::out_char('0'),
+        0x0C => Cursor::out_char('-'),
+        0x0D => Cursor::out_char('='),
+        0x0E => Cursor::backspace(),
+        0x0F => Cursor::tab(),
+        0x10 => Cursor::out_char('Q'),
+        0x11 => Cursor::out_char('W'),
+        0x12 => Cursor::out_char('E'),
+        0x13 => Cursor::out_char('R'),
+        0x14 => Cursor::out_char('T'),
+        0x15 => Cursor::out_char('Y'),
+        0x16 => Cursor::out_char('U'),
+        0x17 => Cursor::out_char('I'),
+        0x18 => Cursor::out_char('O'),
+        0x19 => Cursor::out_char('P'),
+        0x1A => Cursor::out_char('['),
+        0x1B => Cursor::out_char(']'),
+        0x1C => Cursor::enter(),
+        0x1E => Cursor::out_char('A'),
+        0x1F => Cursor::out_char('S'),
+        0x20 => Cursor::out_char('D'),
+        0x21 => Cursor::out_char('F'),
+        0x22 => Cursor::out_char('G'),
+        0x23 => Cursor::out_char('H'),
+        0x24 => Cursor::out_char('J'),
+        0x25 => Cursor::out_char('K'),
+        0x26 => Cursor::out_char('L'),
+        0x27 => Cursor::out_char(';'),
+        0x28 => Cursor::out_char('\"'),
+        0x29 => Cursor::out_char('`'),
+        0x2B => Cursor::out_char('\\'),
+        0x2C => Cursor::out_char('Z'),
+        0x2D => Cursor::out_char('X'),
+        0x2E => Cursor::out_char('C'),
+        0x2F => Cursor::out_char('V'),
+        0x30 => Cursor::out_char('B'),
+        0x31 => Cursor::out_char('N'),
+        0x32 => Cursor::out_char('M'),
+        0x33 => Cursor::out_char(','),
+        0x34 => Cursor::out_char('.'),
+        0x35 => Cursor::out_char('/'),
+        0x39 => Cursor::space(),
+        0xE0 => match port::in_byte(port::PS2_DATA) {
+            0x47 => Cursor::home(),
+            0x48 => Cursor::up(),
+            0x4B => Cursor::left(),
+            0x4D => Cursor::right(),
+            0x4F => Cursor::end(),
+            0x50 => Cursor::down(),
+            0x53 => Cursor::delete(),
+            _ => {}
+        },
+        _ => {}
     }
 }
