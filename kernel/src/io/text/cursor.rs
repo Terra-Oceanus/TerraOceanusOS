@@ -154,27 +154,21 @@ impl Cursor {
                 CURSOR.ptr = CURSOR.ptr.sub((font::HEIGHT - 1) * screen::stride() - 1);
             }
         }
-        Self::write_cache();
-        Self::show();
     }
 
     pub fn backspace() {
-        Self::wrapper(|| unsafe {
-            Self::left();
-            screen::left(CURSOR.x, CURSOR.y, CURSOR.ptr);
-        });
+        Self::left();
+        unsafe { screen::left(CURSOR.x, CURSOR.y, CURSOR.ptr) };
     }
 
     pub fn tab() {
-        Self::wrapper(|| {
-            for _ in 0..4 {
-                Self::right();
-            }
-        });
+        for _ in 0..4 {
+            Self::space();
+        }
     }
 
     pub fn enter() {
-        Self::wrapper(|| unsafe {
+        unsafe {
             if CURSOR.y + 1 == Self::max_y() {
                 CURSOR.ptr = CURSOR.ptr.sub(CURSOR.x * font::WIDTH);
                 screen::up();
@@ -186,28 +180,31 @@ impl Cursor {
                 CURSOR.y += 1;
             }
             CURSOR.x = 0;
-        });
+        }
     }
 
     pub fn space() {
-        Self::wrapper(|| unsafe {
-            screen::left(CURSOR.x, CURSOR.y, CURSOR.ptr);
-        });
+        if !screen::last_is_black() {
+            Self::up();
+            screen::up();
+        }
+        unsafe { screen::right(CURSOR.x, CURSOR.y, CURSOR.ptr) };
+        Self::out_char(' ');
     }
 
     pub fn home() {}
 
     pub fn up() {
-        Self::wrapper(|| unsafe {
+        unsafe {
             if CURSOR.y != 0 {
                 CURSOR.y -= 1;
                 CURSOR.ptr = CURSOR.ptr.sub(font::HEIGHT * screen::stride());
             }
-        });
+        }
     }
 
     pub fn left() {
-        Self::wrapper(|| unsafe {
+        unsafe {
             if CURSOR.x == 0 {
                 if CURSOR.y == 0 {
                     return;
@@ -225,11 +222,11 @@ impl Cursor {
                 CURSOR.x -= 1;
                 CURSOR.ptr = CURSOR.ptr.sub(font::WIDTH);
             }
-        });
+        }
     }
 
     pub fn right() {
-        Self::wrapper(|| unsafe {
+        unsafe {
             if CURSOR.x + 1 == Self::max_x() {
                 if CURSOR.y + 1 == Self::max_y() {
                     return;
@@ -247,21 +244,21 @@ impl Cursor {
                 CURSOR.x += 1;
                 CURSOR.ptr = CURSOR.ptr.add(font::WIDTH);
             }
-        });
+        }
     }
 
     pub fn end() {}
 
     pub fn down() {
-        Self::wrapper(|| unsafe {
+        unsafe {
             if CURSOR.y + 1 != Self::max_y() {
                 CURSOR.y += 1;
                 CURSOR.ptr = CURSOR.ptr.add(font::HEIGHT * screen::stride());
             }
-        });
+        }
     }
 
     pub fn delete() {
-        Self::wrapper(|| unsafe { screen::left(CURSOR.x, CURSOR.y, CURSOR.ptr) });
+        unsafe { screen::left(CURSOR.x, CURSOR.y, CURSOR.ptr) }
     }
 }
