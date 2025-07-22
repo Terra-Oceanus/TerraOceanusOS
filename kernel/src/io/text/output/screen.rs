@@ -39,6 +39,26 @@ pub fn clear() {
     }
 }
 
+pub fn last_is_black() -> bool {
+    unsafe {
+        let mut ptr = (frame_buffer::base() as *mut u32)
+            .add(MARGIN * STRIDE)
+            .add(MARGIN)
+            .add(((Cursor::max_y() - 1) * font::HEIGHT) * STRIDE)
+            .add((Cursor::max_x() - 1) * font::WIDTH);
+        for _ in 0..font::HEIGHT {
+            for _ in 0..font::WIDTH {
+                if ptr.read_volatile() != Color::Black as u32 {
+                    return false;
+                }
+                ptr = ptr.add(1);
+            }
+            ptr = ptr.add(STRIDE).sub(font::WIDTH);
+        }
+    }
+    true
+}
+
 pub fn up() {
     unsafe {
         let mut ptr = (frame_buffer::base() as *mut u32)
@@ -78,6 +98,38 @@ pub fn left(x: usize, y: usize, mut ptr: *mut u32) {
                 if i == y && j + 1 != font::HEIGHT {
                     ptr = ptr.add(x * font::WIDTH);
                 }
+            }
+        }
+    }
+}
+
+pub fn right(x: usize, y: usize, ptr: *mut u32) {
+    unsafe {
+        let mut tail = ptr
+            .add(((Cursor::max_y() - y) * font::HEIGHT - 1) * STRIDE)
+            .add((Cursor::max_x() - x) * font::WIDTH - 1);
+        for i in (y..Cursor::max_y()).rev() {
+            for _ in 0..font::HEIGHT {
+                for _ in (((if i == y { x } else { 0 }) + 1) * font::WIDTH)
+                    ..(Cursor::max_x() * font::WIDTH)
+                {
+                    tail.write_volatile(tail.sub(font::WIDTH).read_volatile());
+                    tail = tail.sub(1);
+                }
+                for _ in 0..font::WIDTH {
+                    tail.write_volatile(if i == y {
+                        Color::Black as u32
+                    } else {
+                        tail.sub(font::HEIGHT * STRIDE)
+                            .add((Cursor::max_x() - 1) * font::WIDTH)
+                            .read_volatile()
+                    });
+                    tail = tail.sub(1);
+                }
+                if i == y {
+                    tail = tail.sub(x * font::WIDTH);
+                }
+                tail = tail.sub(MARGIN).sub(STRIDE - WIDTH).sub(MARGIN);
             }
         }
     }
