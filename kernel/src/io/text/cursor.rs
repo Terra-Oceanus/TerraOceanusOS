@@ -122,12 +122,11 @@ impl Cursor {
     pub fn out_char(c: char) {
         for row in font::bitmap(c) {
             for col in 0..font::WIDTH {
-                let color: u32 = if (row >> col) & 1 == 1 {
+                Self::out_pixel(if (row >> col) & 1 == 1 {
                     Color::White as u32
                 } else {
                     Color::Black as u32
-                };
-                Self::out_pixel(color);
+                });
             }
         }
 
