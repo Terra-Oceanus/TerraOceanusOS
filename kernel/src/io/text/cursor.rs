@@ -136,22 +136,26 @@ impl Cursor {
                 CURSOR.x = 0;
                 if CURSOR.y + 1 == Self::max_y() {
                     screen::up();
-                    CURSOR.ptr = CURSOR.ptr.sub((Self::max_x() - 1) * font::WIDTH);
+                    CURSOR.ptr = CURSOR
+                        .ptr
+                        .sub((font::HEIGHT - 1) * screen::stride())
+                        .sub(Self::max_x() * font::WIDTH - 1);
                 } else {
                     CURSOR.y += 1;
                     CURSOR.ptr = CURSOR
                         .ptr
                         .add(screen::MARGIN)
                         .add(screen::stride() - screen::width())
-                        .add(screen::MARGIN);
+                        .add(screen::MARGIN)
+                        .add(1);
                 }
-                CURSOR.ptr = CURSOR.ptr.add(1);
             } else {
                 CURSOR.x += 1;
                 CURSOR.ptr = CURSOR.ptr.sub((font::HEIGHT - 1) * screen::stride() - 1);
             }
         }
         Self::write_cache();
+        Self::show();
     }
 
     pub fn backspace() {
