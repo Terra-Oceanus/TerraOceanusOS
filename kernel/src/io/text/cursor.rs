@@ -160,28 +160,16 @@ impl Cursor {
 
     pub fn backspace() {
         Self::wrapper(|| unsafe {
-            if CURSOR.x == 0 {
-                if CURSOR.y == 0 {
-                    return;
-                }
-                CURSOR.x = Self::max_x() - 1;
-                CURSOR.y -= 1;
-                CURSOR.ptr = CURSOR
-                    .ptr
-                    .sub(font::HEIGHT * screen::stride())
-                    .add((Self::max_x() - 1) * font::WIDTH);
-            } else {
-                CURSOR.x -= 1;
-                CURSOR.ptr = CURSOR.ptr.sub(font::WIDTH);
-            }
+            Self::left();
             screen::left(CURSOR.x, CURSOR.y, CURSOR.ptr);
         });
     }
 
     pub fn tab() {
-        Self::wrapper(|| unsafe {
-            CURSOR.ptr = CURSOR.ptr.add(font::WIDTH * 4);
-            CURSOR.x += 4;
+        Self::wrapper(|| {
+            for _ in 0..4 {
+                Self::right();
+            }
         });
     }
 
