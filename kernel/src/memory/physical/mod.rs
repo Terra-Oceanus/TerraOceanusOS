@@ -1,6 +1,8 @@
 //! Physical
 
-use crate::{Output, init_end, init_message, init_start};
+use crate::{Output, init_end, init_start};
+
+mod buddy_allocator;
 
 #[repr(C)]
 pub struct Descriptor {
@@ -49,5 +51,12 @@ pub struct Descriptor {
 
 pub fn init(entry: usize, descriptor_size: usize, descriptor_count: usize) {
     init_start!();
+    for i in 0..descriptor_count {
+        let descriptor = unsafe { &*((entry + i * descriptor_size) as *const Descriptor) };
+        match descriptor.type_ {
+            7 => {}
+            _ => {}
+        }
+    }
     init_end!();
 }
