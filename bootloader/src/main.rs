@@ -10,6 +10,7 @@ use uefi::{
         open_protocol,
     },
     entry, guid,
+    mem::memory_map::MemoryMap,
     proto::{
         console::gop::{GraphicsOutput, PixelFormat},
         media::file::{File, FileAttribute, FileMode, FileType},
@@ -151,8 +152,8 @@ fn main() -> Status {
     };
 
     unsafe {
-        let _mmo = exit_boot_services(None);
-
+        let memory_map_owned = exit_boot_services(None);
+        let memory_map_meta = memory_map_owned.meta();
         asm!(
             "jmp {}",
             in(reg) entry,
@@ -161,6 +162,9 @@ fn main() -> Status {
             in("r10") height,
             in("r11") stride,
             in("r12") rsdp_addr,
+            in("r13") memory_map_owned.buffer().as_ptr() as usize,
+            in("r14") memory_map_meta.desc_size,
+            in("r15") memory_map_meta.entry_count(),
             options(noreturn),
         );
     }
