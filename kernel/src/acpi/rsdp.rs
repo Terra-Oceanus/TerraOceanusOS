@@ -23,7 +23,7 @@ struct RSDP1_0 {
     /// - 2: ACPI 2.0+
     revision: u8,
 
-    /// *Deprecated*
+    /// Deprecated
     rsdt_address: u32,
 }
 impl RSDP1_0 {
