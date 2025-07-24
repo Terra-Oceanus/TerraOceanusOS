@@ -5,7 +5,7 @@ use crate::{Output, init_end, init_start};
 mod buddy_allocator;
 
 #[repr(C)]
-pub struct Descriptor {
+struct Descriptor {
     /// - 0: Reserved
     /// - 1: Loader Code
     /// - 2: Loader Data
