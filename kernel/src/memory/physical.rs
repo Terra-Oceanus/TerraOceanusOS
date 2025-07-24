@@ -1,0 +1,53 @@
+//! Physical
+
+use crate::{Output, init_end, init_message, init_start};
+
+#[repr(C)]
+pub struct Descriptor {
+    /// - 0: Reserved
+    /// - 1: Loader Code
+    /// - 2: Loader Data
+    /// - 3: Boot Services Code
+    /// - 4: Boot Services Data
+    /// - 5: Runtime Services Code
+    /// - 6: Runtime Services Data
+    /// - 7: Conventional
+    /// - 8: Unusable
+    /// - 9: ACPI Reclaim
+    /// - 10: ACPI Non Volatile
+    /// - 11: MMIO
+    /// - 12: MMIO Port Space
+    /// - 13: PAL Code
+    /// - 14: Persistent Memory
+    /// - 15: Unaccepted
+    /// - 16: Max
+    type_: u32,
+
+    phys_start: u64,
+    virt_start: u64,
+
+    page_count: u64,
+
+    /// - Bit 0: Uncacheable
+    /// - Bit 1: Write Combine
+    /// - Bit 2: Write Through
+    /// - Bit 3: Write Back
+    /// - Bit 4: Uncacheable Exported
+    /// - Bit 12: Write Protect
+    /// - Bit 13: Read Protect
+    /// - Bit 14: Execute Protect
+    /// - Bit 15: Non Volatile
+    /// - Bit 16: More Reliable
+    /// - Bit 17: Read Only
+    /// - Bit 18: Special Purpose
+    /// - Bit 19: CPU Crypto
+    /// - Bits 44 ..= 59: ISA Mask
+    /// - Bit 62: ISA Valid
+    /// - Bit 63: Runtime
+    attributes: u64,
+}
+
+pub fn init(entry: usize, descriptor_size: usize, descriptor_count: usize) {
+    init_start!();
+    init_end!();
+}
