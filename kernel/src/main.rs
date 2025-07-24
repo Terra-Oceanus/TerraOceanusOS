@@ -8,6 +8,7 @@ mod arch;
 mod error;
 mod io;
 mod macros;
+mod memory;
 
 use arch::x86_64;
 use error::Error;
@@ -39,6 +40,9 @@ pub extern "C" fn _start() -> ! {
     let mut height: usize;
     let mut stride: usize;
     let mut rsdp_addr: u64;
+    let mut memory_map_entry: usize;
+    let mut memory_descriptor_size: usize;
+    let mut memory_descriptor_count: usize;
     unsafe {
         asm!(
             "",
@@ -47,9 +51,22 @@ pub extern "C" fn _start() -> ! {
             lateout("r10") height,
             lateout("r11") stride,
             lateout("r12") rsdp_addr,
+            lateout("r13") memory_map_entry,
+            lateout("r14") memory_descriptor_size,
+            lateout("r15") memory_descriptor_count,
         )
     };
-    init(frame_buffer_base, width, height, stride, rsdp_addr).unwrap_or_else(|e| e.output());
+    init(
+        frame_buffer_base,
+        width,
+        height,
+        stride,
+        rsdp_addr,
+        memory_map_entry,
+        memory_descriptor_size,
+        memory_descriptor_count,
+    )
+    .unwrap_or_else(|e| e.output());
 
     "Switching segment...".output();
     unsafe {
@@ -84,6 +101,9 @@ fn init(
     screen_height: usize,
     screen_stride: usize,
     rsdp_addr: u64,
+    memory_map_entry: usize,
+    memory_descriptor_size: usize,
+    memory_descriptor_count: usize,
 ) -> Result<(), Error> {
     io::init(
         frame_buffer_base,
@@ -93,6 +113,11 @@ fn init(
     );
     acpi::init(rsdp_addr)?;
     x86_64::init()?;
+    memory::init(
+        memory_map_entry,
+        memory_descriptor_size,
+        memory_descriptor_count,
+    );
     init_end!();
     Ok(())
 }
