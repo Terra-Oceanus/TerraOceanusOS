@@ -2,6 +2,8 @@
 
 use crate::{Output, init_end, init_start};
 
+use super::PAGE_SIZE;
+
 mod buddy_allocator;
 
 #[repr(C)]
