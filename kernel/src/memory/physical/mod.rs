@@ -6,6 +6,8 @@ use super::PAGE_SIZE;
 
 mod buddy_allocator;
 
+use buddy_allocator::BuddyAllocator;
+
 #[repr(C)]
 struct Descriptor {
     /// - 0: Reserved
