@@ -19,7 +19,7 @@ struct PageInfo {
 impl PageInfo {
     fn null() -> Self {
         Self {
-            state: true,
+            state: false,
             order: 0,
             next: 0,
         }
