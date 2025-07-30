@@ -2,7 +2,11 @@
 //!
 //! NMI stands for Non-Maskable Interrupt
 
-use crate::{Error, Output, init_message};
+use crate::{
+    Output,
+    error::{ACPI, Error},
+    init_message,
+};
 
 use super::{FromAddr, Header, polarity_to_str, trigger_mode_to_str};
 
@@ -23,10 +27,10 @@ struct Type4 {
 impl Type4 {
     fn handle(&self) -> Result<(), Error> {
         if self.header.length as usize != size_of::<Self>() {
-            return Err(Error::InvalidLength);
+            return Err(Error::ACPI(ACPI::InvalidLength));
         }
         if self.flags & !0b1111 != 0 {
-            return Err(Error::InvalidReserved);
+            return Err(Error::ACPI(ACPI::InvalidReserved));
         }
         let polarity = (self.flags & 0b11) as u8;
         let trigger_mode = ((self.flags >> 2) & 0b11) as u8;

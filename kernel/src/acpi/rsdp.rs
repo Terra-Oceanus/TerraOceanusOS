@@ -1,6 +1,10 @@
 //! Root System Description Pointer
 
-use crate::{Error, Output, init_check, init_end, init_message, init_start};
+use crate::{
+    Output,
+    error::{ACPI, Error},
+    init_check, init_end, init_message, init_start,
+};
 
 use super::{Checksum, FromAddr, xsdt};
 
@@ -25,13 +29,13 @@ struct RSDP1_0 {
 impl RSDP1_0 {
     fn init(&self) -> Result<(), Error> {
         if self.signature != *b"RSD PTR " {
-            return Err(Error::InvalidSignature);
+            return Err(Error::ACPI(ACPI::InvalidSignature));
         }
         if !self.checksum(size_of::<Self>()) {
-            return Err(Error::InvalidChecksum);
+            return Err(Error::ACPI(ACPI::InvalidChecksum));
         }
         if self.revision != 2 {
-            return Err(Error::InvalidRevision);
+            return Err(Error::ACPI(ACPI::InvalidRevision));
         }
         Ok(())
     }
@@ -54,13 +58,13 @@ impl RSDP {
         init_start!();
         self.rsdp1_0.init()?;
         if self.length != size_of::<Self>() as u32 {
-            return Err(Error::InvalidLength);
+            return Err(Error::ACPI(ACPI::InvalidLength));
         }
         if !self.checksum(self.length as usize) {
-            return Err(Error::InvalidChecksum);
+            return Err(Error::ACPI(ACPI::InvalidChecksum));
         }
         if self.reserved.iter().any(|&b| b != 0) {
-            return Err(Error::InvalidReserved);
+            return Err(Error::ACPI(ACPI::InvalidReserved));
         }
         init_message!(true, false, "Table XSDT detected...");
         xsdt::set_config(self.xsdt_address);

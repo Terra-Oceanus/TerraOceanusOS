@@ -1,6 +1,6 @@
 //! Output
 
-use crate::Error;
+use crate::error::{ACPI, Error, IOAPIC, Memory};
 
 use super::Cursor;
 
@@ -104,13 +104,17 @@ impl Output for &str {
 impl Output for Error {
     fn output(&self) {
         match self {
-            Error::InvalidSignature => "\nACPI Error: Invalid Signature\n",
-            Error::InvalidChecksum => "\nACPI Error: Invalid Checksum\n",
-            Error::InvalidRevision => "\nACPI Error: Invalid Revision\n",
-            Error::InvalidLength => "\nACPI Error: Invalid Length\n",
-            Error::InvalidReserved => "\nACPI Error: Invalid Reserved\n",
-            Error::MaxCountReached => "\nI/O APIC Error: Max Count Reached\n",
-            Error::InvalidGSIIndex => "\nI/O APIC Error: Invalid GSI Index\n",
+            Error::ACPI(ACPI::InvalidSignature) => "\nACPI Error: Invalid Signature\n",
+            Error::ACPI(ACPI::InvalidChecksum) => "\nACPI Error: Invalid Checksum\n",
+            Error::ACPI(ACPI::InvalidRevision) => "\nACPI Error: Invalid Revision\n",
+            Error::ACPI(ACPI::InvalidLength) => "\nACPI Error: Invalid Length\n",
+            Error::ACPI(ACPI::InvalidReserved) => "\nACPI Error: Invalid Reserved\n",
+            Error::IOAPIC(IOAPIC::MaxCountReached) => "\nI/O APIC Error: Max Count Reached\n",
+            Error::IOAPIC(IOAPIC::InvalidGSIIndex) => "\nI/O APIC Error: Invalid GSI Index\n",
+            Error::Memory(Memory::InvalidAllocationSize) => {
+                "\nMemory Error: Invalid Allocation Size\n"
+            }
+            Error::Memory(Memory::OutOfMemory) => "\nMemory Error: Out Of Memory\n",
         }
         .output();
     }

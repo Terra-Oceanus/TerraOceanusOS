@@ -1,14 +1,25 @@
 //! Error
 
-pub enum Error {
-    // ACPI
+pub enum ACPI {
     InvalidSignature,
     InvalidChecksum,
     InvalidRevision,
     InvalidLength,
     InvalidReserved,
+}
 
-    // I/O APIC
+pub enum IOAPIC {
     MaxCountReached,
     InvalidGSIIndex,
+}
+
+pub enum Memory {
+    InvalidAllocationSize,
+    OutOfMemory,
+}
+
+pub enum Error {
+    ACPI(ACPI),
+    IOAPIC(IOAPIC),
+    Memory(Memory),
 }

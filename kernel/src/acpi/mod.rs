@@ -2,7 +2,11 @@
 
 use core::slice::from_raw_parts;
 
-use crate::{Error, Output, init_end, init_start};
+use crate::{
+    Output,
+    error::{ACPI, Error},
+    init_end, init_start,
+};
 
 mod dsdt;
 mod facs;
@@ -63,10 +67,10 @@ struct Header {
 impl Header {
     fn init(&self, signature: [u8; 4]) -> Result<(), Error> {
         if self.signature != signature {
-            return Err(Error::InvalidSignature);
+            return Err(Error::ACPI(ACPI::InvalidSignature));
         }
         if !self.checksum(self.length as usize) {
-            return Err(Error::InvalidChecksum);
+            return Err(Error::ACPI(ACPI::InvalidChecksum));
         }
         Ok(())
     }

@@ -1,6 +1,11 @@
 //! I/O APIC
 
-use crate::{Error, Output, init_message, x86_64::apic::ioapic};
+use crate::{
+    Output,
+    error::{ACPI, Error},
+    init_message,
+    x86_64::apic::ioapic,
+};
 
 use super::{FromAddr, Header};
 
@@ -19,10 +24,10 @@ struct Type1 {
 impl Type1 {
     fn handle(&self) -> Result<(), Error> {
         if self.header.length as usize != size_of::<Self>() {
-            return Err(Error::InvalidLength);
+            return Err(Error::ACPI(ACPI::InvalidLength));
         }
         if self.reserved != 0 {
-            return Err(Error::InvalidReserved);
+            return Err(Error::ACPI(ACPI::InvalidReserved));
         }
         let addr = self.io_apic_address;
         let base = self.global_system_interrupt_base;

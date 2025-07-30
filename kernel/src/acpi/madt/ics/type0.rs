@@ -1,6 +1,10 @@
 //! Processor Local APIC
 
-use crate::{Error, Output, init_message};
+use crate::{
+    Output,
+    error::{ACPI, Error},
+    init_message,
+};
 
 use super::{FromAddr, Header};
 
@@ -20,7 +24,7 @@ struct Type0 {
 impl Type0 {
     fn handle(&self) -> Result<(), Error> {
         if self.header.length as usize != size_of::<Self>() {
-            return Err(Error::InvalidLength);
+            return Err(Error::ACPI(ACPI::InvalidLength));
         }
         init_message!(
             false,
@@ -33,13 +37,13 @@ impl Type0 {
         );
         if self.flags & 1 == 1 {
             if self.flags & !1 != 0 {
-                return Err(Error::InvalidReserved);
+                return Err(Error::ACPI(ACPI::InvalidReserved));
             }
             init_message!(false, true, "unprocessed");
         } else {
             if self.flags >> 1 & 1 == 1 {
                 if self.flags & !0b11 != 0 {
-                    return Err(Error::InvalidReserved);
+                    return Err(Error::ACPI(ACPI::InvalidReserved));
                 }
                 init_message!(false, true, "can be enabled at runtime");
             } else {

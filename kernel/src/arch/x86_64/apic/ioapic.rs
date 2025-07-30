@@ -2,7 +2,11 @@
 
 use core::ptr::{read_volatile, write_volatile};
 
-use crate::{Error, Output, init_check, init_end, init_start};
+use crate::{
+    Output,
+    error::{Error, IOAPIC},
+    init_check, init_end, init_start,
+};
 
 use super::{super::idt::Interrupt, lapic};
 
@@ -126,7 +130,7 @@ impl Config {
 pub fn append(addr: u32, base: u32) -> Result<(), Error> {
     unsafe {
         if COUNT == MAX_IO_APIC_COUNT {
-            return Err(Error::MaxCountReached);
+            return Err(Error::IOAPIC(IOAPIC::MaxCountReached));
         }
         IOAPICS[COUNT] = Config { addr, base };
         COUNT += 1;
@@ -141,7 +145,7 @@ pub fn handle_override(src: u8, dst: u32, polarity: u8, trigger_mode: u8) -> Res
             continue;
         }
         if dst >= ioapic.base + (ioapic.read(Register::Version as u32) >> 16) & 0xFF {
-            return Err(Error::InvalidGSIIndex);
+            return Err(Error::IOAPIC(IOAPIC::InvalidGSIIndex));
         }
 
         let index_reg = (ioapic.addr + MemoryMappedRegister::RegisterSelect as u32) as *mut u32;
@@ -149,7 +153,7 @@ pub fn handle_override(src: u8, dst: u32, polarity: u8, trigger_mode: u8) -> Res
         let addr = Register::RedirectionTableEntry as u32 + (dst - ioapic.base) * 2;
         return Ok(());
     }
-    Err(Error::InvalidGSIIndex)
+    Err(Error::IOAPIC(IOAPIC::InvalidGSIIndex))
 }
 
 pub fn init() -> Result<(), Error> {

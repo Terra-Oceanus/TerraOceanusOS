@@ -2,7 +2,11 @@
 
 use core::ptr::{addr_of, read_unaligned};
 
-use crate::{Error, Output, init_check, init_end, init_message, init_start};
+use crate::{
+    Output,
+    error::{ACPI, Error},
+    init_check, init_end, init_message, init_start,
+};
 
 use super::{FromAddr, Header, fadt, madt};
 
@@ -31,7 +35,7 @@ impl XSDT {
                 true,
                 true,
                 "Table with signature(",
-                str::from_utf8(signature).map_err(|_e| Error::InvalidSignature)?,
+                str::from_utf8(signature).map_err(|_e| Error::ACPI(ACPI::InvalidSignature))?,
                 ") detected...",
                 match signature {
                     fadt::SIGNATURE => {

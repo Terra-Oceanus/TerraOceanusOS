@@ -1,6 +1,11 @@
 //! Interrupt Source Override
 
-use crate::{Error, Output, init_message, x86_64::apic::ioapic};
+use crate::{
+    Output,
+    error::{ACPI, Error},
+    init_message,
+    x86_64::apic::ioapic,
+};
 
 use super::{FromAddr, Header, polarity_to_str, trigger_mode_to_str};
 
@@ -23,10 +28,10 @@ struct Type2 {
 impl Type2 {
     fn handle(&self) -> Result<(), Error> {
         if self.header.length as usize != size_of::<Self>() {
-            return Err(Error::InvalidLength);
+            return Err(Error::ACPI(ACPI::InvalidLength));
         }
         if self.flags & !0b1111 != 0 {
-            return Err(Error::InvalidReserved);
+            return Err(Error::ACPI(ACPI::InvalidReserved));
         }
         let src = self.source;
         let dst = self.global_system_interrupt;
