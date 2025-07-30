@@ -193,7 +193,7 @@ impl Cursor {
             screen::up();
         }
         unsafe { screen::right(CURSOR.x, CURSOR.y, CURSOR.ptr) };
-        Self::out_char(' ', true);
+        Self::out_char(' ', false);
     }
 
     pub fn home() {}

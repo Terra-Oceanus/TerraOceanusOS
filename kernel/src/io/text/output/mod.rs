@@ -90,7 +90,7 @@ impl Output for char {
                 _ => {}
             }
         } else {
-            Cursor::out_char(*self, true);
+            Cursor::out_char(*self, false);
         }
     }
 }
