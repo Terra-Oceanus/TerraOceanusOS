@@ -117,7 +117,7 @@ fn init(
         memory_map_entry,
         memory_descriptor_size,
         memory_descriptor_count,
-    );
+    )?;
     init_end!();
     Ok(())
 }
