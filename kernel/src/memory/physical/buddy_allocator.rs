@@ -127,7 +127,7 @@ impl BuddyAllocator {
     fn deallocate(index: usize) -> Result<(), Error> {
         unsafe {
             if index >= BUDDY_ALLOCATOR.page_count as usize {
-                return Err(Error::Memory(Memory::InvalidDeallocationIndex));
+                return Err(Error::Memory(Memory::InvalidIndex));
             }
 
             let mut index = index;

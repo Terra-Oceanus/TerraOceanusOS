@@ -115,9 +115,7 @@ impl Output for Error {
                 "\nMemory Error: Invalid Allocation Size\n"
             }
             Error::Memory(Memory::OutOfMemory) => "\nMemory Error: Out Of Memory\n",
-            Error::Memory(Memory::InvalidDeallocationIndex) => {
-                "\nMemory Error: Invalid Deallocation Index\n"
-            }
+            Error::Memory(Memory::InvalidIndex) => "\nMemory Error: Invalid Index\n",
         }
         .output();
     }

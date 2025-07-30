@@ -16,7 +16,7 @@ pub enum IOAPIC {
 pub enum Memory {
     InvalidAllocationSize,
     OutOfMemory,
-    InvalidDeallocationIndex,
+    InvalidIndex,
 }
 
 pub enum Error {
