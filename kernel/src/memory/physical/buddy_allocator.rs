@@ -123,4 +123,49 @@ impl BuddyAllocator {
         }
         Err(Error::Memory(Memory::OutOfMemory))
     }
+
+    fn deallocate(index: usize) -> Result<(), Error> {
+        unsafe {
+            if index >= BUDDY_ALLOCATOR.page_count as usize {
+                return Err(Error::Memory(Memory::InvalidDeallocationIndex));
+            }
+
+            let mut index = index;
+            BUDDY_ALLOCATOR.page_info[index].state = true;
+
+            let mut order = BUDDY_ALLOCATOR.page_info[index].order as usize;
+            while order < BUDDY_ALLOCATOR.max_order as usize {
+                let buddy = index ^ (1 << order);
+
+                if !BUDDY_ALLOCATOR.page_info[buddy].state
+                    || BUDDY_ALLOCATOR.page_info[buddy].order != order as u8
+                {
+                    break;
+                }
+
+                let mut prev = 0;
+                let mut curr = BUDDY_ALLOCATOR.free_list[order];
+                while curr != 0 {
+                    if curr == buddy {
+                        if prev == 0 {
+                            BUDDY_ALLOCATOR.free_list[order] = BUDDY_ALLOCATOR.page_info[curr].next;
+                        } else {
+                            BUDDY_ALLOCATOR.page_info[prev].next =
+                                BUDDY_ALLOCATOR.page_info[curr].next;
+                        }
+                        break;
+                    }
+                    prev = curr;
+                    curr = BUDDY_ALLOCATOR.page_info[curr].next;
+                }
+                
+                index = if index < buddy { index } else { buddy };
+                order += 1;
+            }
+            BUDDY_ALLOCATOR.page_info[index].order = order as u8;
+            BUDDY_ALLOCATOR.page_info[index].next = BUDDY_ALLOCATOR.free_list[order];
+            BUDDY_ALLOCATOR.free_list[order] = index;
+        }
+        Ok(())
+    }
 }
