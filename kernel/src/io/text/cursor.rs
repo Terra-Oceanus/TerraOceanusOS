@@ -119,7 +119,11 @@ impl Cursor {
         Self::show();
     }
 
-    pub fn out_char(c: char) {
+    pub fn out_char(c: char, right: bool) {
+        if right {
+            unsafe { screen::right(CURSOR.x, CURSOR.y, CURSOR.ptr) };
+        }
+
         for row in font::bitmap(c) {
             for col in 0..font::WIDTH {
                 Self::out_pixel(if (row >> col) & 1 == 1 {
@@ -189,7 +193,7 @@ impl Cursor {
             screen::up();
         }
         unsafe { screen::right(CURSOR.x, CURSOR.y, CURSOR.ptr) };
-        Self::out_char(' ');
+        Self::out_char(' ', true);
     }
 
     pub fn home() {}
