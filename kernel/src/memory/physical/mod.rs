@@ -74,6 +74,6 @@ pub fn init(entry: usize, descriptor_size: usize, descriptor_count: usize) {
         allocate_addr = descriptor.phys_start;
         break;
     }
-    BuddyAllocator::init(allocate_addr, pending_allocation_size);
+    BuddyAllocator::init(allocate_addr);
     init_end!();
 }

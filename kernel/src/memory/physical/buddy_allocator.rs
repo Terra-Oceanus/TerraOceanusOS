@@ -63,17 +63,12 @@ impl BuddyAllocator {
         }
     }
 
-    pub fn init(addr: u64, size: usize) {
+    pub fn init(addr: u64) {
         unsafe {
             BUDDY_ALLOCATOR.page_info =
                 from_raw_parts_mut(addr as *mut PageInfo, BUDDY_ALLOCATOR.page_count as usize);
             for i in 0..(BUDDY_ALLOCATOR.page_count as usize) {
                 BUDDY_ALLOCATOR.page_info[i] = PageInfo::null();
-                if i >= (addr as usize) / PAGE_SIZE
-                    && i < (addr as usize + size + PAGE_SIZE - 1) / PAGE_SIZE
-                {
-                    BUDDY_ALLOCATOR.page_info[i].state = false;
-                }
             }
 
             BUDDY_ALLOCATOR.free_list = from_raw_parts_mut(
