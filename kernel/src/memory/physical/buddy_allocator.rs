@@ -2,6 +2,8 @@
 
 use core::slice::from_raw_parts_mut;
 
+use crate::error::{Error, Memory};
+
 use super::PAGE_SIZE;
 
 static mut BUDDY_ALLOCATOR: BuddyAllocator = BuddyAllocator::null();
@@ -80,5 +82,45 @@ impl BuddyAllocator {
                 BUDDY_ALLOCATOR.free_list[i] = 0;
             }
         }
+    }
+
+    fn allocate(size: usize) -> Result<usize, Error> {
+        let pages = (size + PAGE_SIZE - 1) / PAGE_SIZE;
+        if pages == 0 || pages > (1 << unsafe { BUDDY_ALLOCATOR.max_order }) {
+            return Err(Error::Memory(Memory::InvalidAllocationSize));
+        }
+
+        let mut order = 0;
+        while (1 << order) < pages {
+            order += 1;
+        }
+
+        let mut current_order = order;
+        unsafe {
+            while current_order as u8 <= BUDDY_ALLOCATOR.max_order {
+                let head = BUDDY_ALLOCATOR.free_list[current_order];
+                if head != 0 {
+                    BUDDY_ALLOCATOR.free_list[current_order] = BUDDY_ALLOCATOR.page_info[head].next;
+
+                    while current_order > order {
+                        current_order -= 1;
+                        let buddy = head + (1 << current_order);
+                        BUDDY_ALLOCATOR.page_info[buddy].state = true;
+                        BUDDY_ALLOCATOR.page_info[buddy].order = current_order as u8;
+                        BUDDY_ALLOCATOR.page_info[buddy].next =
+                            BUDDY_ALLOCATOR.free_list[current_order];
+                        BUDDY_ALLOCATOR.free_list[current_order] = buddy;
+                    }
+
+                    BUDDY_ALLOCATOR.page_info[head].state = false;
+                    BUDDY_ALLOCATOR.page_info[head].order = order as u8;
+                    BUDDY_ALLOCATOR.page_info[head].next = 0;
+
+                    return Ok(head);
+                }
+                current_order += 1;
+            }
+        }
+        Err(Error::Memory(Memory::OutOfMemory))
     }
 }
