@@ -55,20 +55,20 @@ struct Descriptor {
 
 pub fn init(entry: usize, descriptor_size: usize, descriptor_count: usize) {
     init_start!();
-    let mut size: usize = 0;
+    let mut size = 0;
     for i in 0..descriptor_count {
         let descriptor = unsafe { &*((entry + i * descriptor_size) as *const Descriptor) };
-        let phys_end = descriptor.phys_start as usize + PAGE_SIZE * descriptor.page_count as usize;
+        let phys_end = descriptor.phys_start + PAGE_SIZE * descriptor.page_count;
         size = if phys_end > size { phys_end } else { size };
     }
-    let pending_allocation_size = BuddyAllocator::pre_init(size);
+    let pending_allocation_size = BuddyAllocator::pre_init(size) as u64;
     let mut allocate_addr: u64 = 0;
     for i in 0..descriptor_count {
         let descriptor = unsafe { &*((entry + i * descriptor_size) as *const Descriptor) };
         if descriptor.type_ != 7 {
             continue;
         }
-        if (descriptor.page_count as usize) < (pending_allocation_size / PAGE_SIZE) {
+        if descriptor.page_count < pending_allocation_size / PAGE_SIZE {
             continue;
         }
         allocate_addr = descriptor.phys_start;
