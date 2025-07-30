@@ -59,16 +59,19 @@ pub fn init(entry: usize, descriptor_size: usize, descriptor_count: usize) {
     for i in 0..descriptor_count {
         let descriptor = unsafe { &*((entry + i * descriptor_size) as *const Descriptor) };
         let phys_end = descriptor.phys_start + PAGE_SIZE * descriptor.page_count;
-        size = if phys_end > size { phys_end } else { size };
+        if phys_end > size {
+            size = phys_end
+        };
     }
-    let pending_allocation_size = BuddyAllocator::pre_init(size) as u64;
+    let pending_allocation_page_count =
+        (BuddyAllocator::pre_init(size) + PAGE_SIZE - 1) / PAGE_SIZE;
     let mut allocate_addr: u64 = 0;
     for i in 0..descriptor_count {
         let descriptor = unsafe { &*((entry + i * descriptor_size) as *const Descriptor) };
         if descriptor.type_ != 7 {
             continue;
         }
-        if descriptor.page_count < pending_allocation_size / PAGE_SIZE {
+        if descriptor.page_count < pending_allocation_page_count {
             continue;
         }
         allocate_addr = descriptor.phys_start;

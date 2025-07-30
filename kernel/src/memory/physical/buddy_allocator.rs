@@ -48,7 +48,7 @@ impl BuddyAllocator {
         }
     }
 
-    pub fn pre_init(memory_size: u64) -> usize {
+    pub fn pre_init(memory_size: u64) -> u64 {
         unsafe {
             BUDDY_ALLOCATOR.page_count = ((memory_size + PAGE_SIZE - 1) / PAGE_SIZE) as u32;
             BUDDY_ALLOCATOR.max_order = {
@@ -60,8 +60,8 @@ impl BuddyAllocator {
                 }
                 order
             };
-            size_of::<PageInfo>() * BUDDY_ALLOCATOR.page_count as usize
-                + size_of::<usize>() * (BUDDY_ALLOCATOR.max_order as usize + 1)
+            (size_of::<PageInfo>() * BUDDY_ALLOCATOR.page_count as usize
+                + size_of::<usize>() * (BUDDY_ALLOCATOR.max_order as usize + 1)) as u64
         }
     }
 
