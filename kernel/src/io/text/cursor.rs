@@ -121,6 +121,10 @@ impl Cursor {
 
     pub fn out_char(c: char, right: bool) {
         if right {
+            if !screen::last_is_black() {
+                Self::up();
+                screen::up();
+            }
             unsafe { screen::right(CURSOR.x, CURSOR.y, CURSOR.ptr) };
         }
 
