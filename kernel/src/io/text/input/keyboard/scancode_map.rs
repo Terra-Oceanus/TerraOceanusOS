@@ -41,7 +41,7 @@ pub fn map(byte: u8) {
         0x25 => Cursor::out_char('K'),
         0x26 => Cursor::out_char('L'),
         0x27 => Cursor::out_char(';'),
-        0x28 => Cursor::out_char('\"'),
+        0x28 => Cursor::out_char('\''),
         0x29 => Cursor::out_char('`'),
         0x2B => Cursor::out_char('\\'),
         0x2C => Cursor::out_char('Z'),
