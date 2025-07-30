@@ -1,10 +1,11 @@
 //! IO
 
 use crate::init_end;
-use text::Output;
 
 pub mod port;
 pub mod text;
+
+use text::Output;
 
 pub fn init(
     frame_buffer_base: u64,
