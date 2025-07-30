@@ -2,6 +2,11 @@
 
 use super::{super::super::super::port, Cursor};
 
+#[inline(always)]
+fn upper() -> bool {
+    unsafe { super::CAPS_LOCK ^ super::SHIFT }
+}
+
 pub fn map(byte: u8) {
     unsafe {
         match byte {
@@ -19,144 +24,40 @@ pub fn map(byte: u8) {
             0x0D => Cursor::out_char(if super::SHIFT { '+' } else { '=' }),
             0x0E => Cursor::backspace(),
             0x0F => Cursor::tab(),
-            0x10 => Cursor::out_char(if super::CAPS_LOCK ^ super::SHIFT {
-                'Q'
-            } else {
-                'q'
-            }),
-            0x11 => Cursor::out_char(if super::CAPS_LOCK ^ super::SHIFT {
-                'W'
-            } else {
-                'w'
-            }),
-            0x12 => Cursor::out_char(if super::CAPS_LOCK ^ super::SHIFT {
-                'E'
-            } else {
-                'e'
-            }),
-            0x13 => Cursor::out_char(if super::CAPS_LOCK ^ super::SHIFT {
-                'R'
-            } else {
-                'r'
-            }),
-            0x14 => Cursor::out_char(if super::CAPS_LOCK ^ super::SHIFT {
-                'T'
-            } else {
-                't'
-            }),
-            0x15 => Cursor::out_char(if super::CAPS_LOCK ^ super::SHIFT {
-                'Y'
-            } else {
-                'y'
-            }),
-            0x16 => Cursor::out_char(if super::CAPS_LOCK ^ super::SHIFT {
-                'U'
-            } else {
-                'u'
-            }),
-            0x17 => Cursor::out_char(if super::CAPS_LOCK ^ super::SHIFT {
-                'I'
-            } else {
-                'i'
-            }),
-            0x18 => Cursor::out_char(if super::CAPS_LOCK ^ super::SHIFT {
-                'O'
-            } else {
-                'o'
-            }),
-            0x19 => Cursor::out_char(if super::CAPS_LOCK ^ super::SHIFT {
-                'P'
-            } else {
-                'p'
-            }),
+            0x10 => Cursor::out_char(if upper() { 'Q' } else { 'q' }),
+            0x11 => Cursor::out_char(if upper() { 'W' } else { 'w' }),
+            0x12 => Cursor::out_char(if upper() { 'E' } else { 'e' }),
+            0x13 => Cursor::out_char(if upper() { 'R' } else { 'r' }),
+            0x14 => Cursor::out_char(if upper() { 'T' } else { 't' }),
+            0x15 => Cursor::out_char(if upper() { 'Y' } else { 'y' }),
+            0x16 => Cursor::out_char(if upper() { 'U' } else { 'u' }),
+            0x17 => Cursor::out_char(if upper() { 'I' } else { 'i' }),
+            0x18 => Cursor::out_char(if upper() { 'O' } else { 'o' }),
+            0x19 => Cursor::out_char(if upper() { 'P' } else { 'p' }),
             0x1A => Cursor::out_char(if super::SHIFT { '{' } else { '[' }),
             0x1B => Cursor::out_char(if super::SHIFT { '}' } else { ']' }),
             0x1C => Cursor::enter(),
-            0x1E => Cursor::out_char(if super::CAPS_LOCK ^ super::SHIFT {
-                'A'
-            } else {
-                'a'
-            }),
-            0x1F => Cursor::out_char(if super::CAPS_LOCK ^ super::SHIFT {
-                'S'
-            } else {
-                's'
-            }),
-            0x20 => Cursor::out_char(if super::CAPS_LOCK ^ super::SHIFT {
-                'D'
-            } else {
-                'd'
-            }),
-            0x21 => Cursor::out_char(if super::CAPS_LOCK ^ super::SHIFT {
-                'F'
-            } else {
-                'f'
-            }),
-            0x22 => Cursor::out_char(if super::CAPS_LOCK ^ super::SHIFT {
-                'G'
-            } else {
-                'g'
-            }),
-            0x23 => Cursor::out_char(if super::CAPS_LOCK ^ super::SHIFT {
-                'H'
-            } else {
-                'h'
-            }),
-            0x24 => Cursor::out_char(if super::CAPS_LOCK ^ super::SHIFT {
-                'J'
-            } else {
-                'j'
-            }),
-            0x25 => Cursor::out_char(if super::CAPS_LOCK ^ super::SHIFT {
-                'K'
-            } else {
-                'k'
-            }),
-            0x26 => Cursor::out_char(if super::CAPS_LOCK ^ super::SHIFT {
-                'L'
-            } else {
-                'l'
-            }),
+            0x1E => Cursor::out_char(if upper() { 'A' } else { 'a' }),
+            0x1F => Cursor::out_char(if upper() { 'S' } else { 's' }),
+            0x20 => Cursor::out_char(if upper() { 'D' } else { 'd' }),
+            0x21 => Cursor::out_char(if upper() { 'F' } else { 'f' }),
+            0x22 => Cursor::out_char(if upper() { 'G' } else { 'g' }),
+            0x23 => Cursor::out_char(if upper() { 'H' } else { 'h' }),
+            0x24 => Cursor::out_char(if upper() { 'J' } else { 'j' }),
+            0x25 => Cursor::out_char(if upper() { 'K' } else { 'k' }),
+            0x26 => Cursor::out_char(if upper() { 'L' } else { 'l' }),
             0x27 => Cursor::out_char(if super::SHIFT { ':' } else { ';' }),
             0x28 => Cursor::out_char(if super::SHIFT { '"' } else { '\'' }),
             0x29 => Cursor::out_char(if super::SHIFT { '~' } else { '`' }),
             0x2A => super::SHIFT = true,
             0x2B => Cursor::out_char(if super::SHIFT { '|' } else { '\\' }),
-            0x2C => Cursor::out_char(if super::CAPS_LOCK ^ super::SHIFT {
-                'Z'
-            } else {
-                'z'
-            }),
-            0x2D => Cursor::out_char(if super::CAPS_LOCK ^ super::SHIFT {
-                'X'
-            } else {
-                'x'
-            }),
-            0x2E => Cursor::out_char(if super::CAPS_LOCK ^ super::SHIFT {
-                'C'
-            } else {
-                'c'
-            }),
-            0x2F => Cursor::out_char(if super::CAPS_LOCK ^ super::SHIFT {
-                'V'
-            } else {
-                'v'
-            }),
-            0x30 => Cursor::out_char(if super::CAPS_LOCK ^ super::SHIFT {
-                'B'
-            } else {
-                'b'
-            }),
-            0x31 => Cursor::out_char(if super::CAPS_LOCK ^ super::SHIFT {
-                'N'
-            } else {
-                'n'
-            }),
-            0x32 => Cursor::out_char(if super::CAPS_LOCK ^ super::SHIFT {
-                'M'
-            } else {
-                'm'
-            }),
+            0x2C => Cursor::out_char(if upper() { 'Z' } else { 'z' }),
+            0x2D => Cursor::out_char(if upper() { 'X' } else { 'x' }),
+            0x2E => Cursor::out_char(if upper() { 'C' } else { 'c' }),
+            0x2F => Cursor::out_char(if upper() { 'V' } else { 'v' }),
+            0x30 => Cursor::out_char(if upper() { 'B' } else { 'b' }),
+            0x31 => Cursor::out_char(if upper() { 'N' } else { 'n' }),
+            0x32 => Cursor::out_char(if upper() { 'M' } else { 'm' }),
             0x33 => Cursor::out_char(if super::SHIFT { '<' } else { ',' }),
             0x34 => Cursor::out_char(if super::SHIFT { '>' } else { '.' }),
             0x35 => Cursor::out_char(if super::SHIFT { '?' } else { '/' }),
