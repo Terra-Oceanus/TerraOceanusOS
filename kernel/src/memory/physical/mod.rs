@@ -78,6 +78,22 @@ pub fn init(entry: usize, descriptor_size: usize, descriptor_count: usize) -> Re
         break;
     }
     BuddyAllocator::init(allocate_addr);
+    for i in 0..descriptor_count {
+        let descriptor = unsafe { &*((entry + i * descriptor_size) as *const Descriptor) };
+        if descriptor.type_ != 7 {
+            continue;
+        }
+        if descriptor.phys_start == allocate_addr
+            && descriptor.page_count > pending_allocation_page_count
+        {
+            BuddyAllocator::add(
+                descriptor.phys_start + pending_allocation_page_count * PAGE_SIZE,
+                descriptor.page_count - pending_allocation_page_count,
+            )?;
+        } else {
+            BuddyAllocator::add(descriptor.phys_start, descriptor.page_count)?;
+        }
+    }
     init_end!();
     Ok(())
 }

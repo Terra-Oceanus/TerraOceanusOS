@@ -84,6 +84,30 @@ impl BuddyAllocator {
         }
     }
 
+    pub fn add(addr: u64, mut count: u64) -> Result<(), Error> {
+        let mut index = (addr / PAGE_SIZE) as usize;
+        while count > 0 {
+            let mut order = unsafe { BUDDY_ALLOCATOR.max_order } as usize;
+            while order > 0 && ((1 << order) > count || (index & ((1 << order) - 1)) != 0) {
+                order -= 1;
+            }
+            if index + (1 << order) > unsafe { BUDDY_ALLOCATOR.page_count } as usize {
+                return Err(Error::Memory(Memory::InvalidIndex));
+            }
+
+            unsafe {
+                BUDDY_ALLOCATOR.page_info[index].state = true;
+                BUDDY_ALLOCATOR.page_info[index].order = order as u8;
+                BUDDY_ALLOCATOR.page_info[index].next = BUDDY_ALLOCATOR.free_list[order];
+                BUDDY_ALLOCATOR.free_list[order] = index;
+            }
+
+            index += 1 << order;
+            count -= 1 << order;
+        }
+        Ok(())
+    }
+
     fn allocate(size: u64) -> Result<usize, Error> {
         let pages = (size + PAGE_SIZE - 1) / PAGE_SIZE;
         if pages == 0 || pages > (1 << unsafe { BUDDY_ALLOCATOR.max_order }) {
