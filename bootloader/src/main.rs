@@ -172,7 +172,10 @@ fn main() -> Status {
     log::info!("RSDP address: {:#x}", rsdp_addr);
 
     log::info!("Press any key to continue......");
-    wait_for_key_press();
+    match wait_for_key_press() {
+        Ok(_) => {}
+        Err(e) => return e,
+    };
 
     unsafe {
         let memory_map_owned = exit_boot_services(None);
