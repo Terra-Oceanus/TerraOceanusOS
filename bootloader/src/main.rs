@@ -3,11 +3,11 @@
 
 use core::{arch::asm, ptr::write_bytes, slice::from_raw_parts_mut};
 use uefi::{
-    CStr16, Status,
+    CStr16, Event, Status,
     boot::{
         AllocateType, MemoryType, OpenProtocolAttributes, OpenProtocolParams, allocate_pages,
         exit_boot_services, get_handle_for_protocol, get_image_file_system, image_handle,
-        open_protocol,
+        open_protocol, wait_for_event,
     },
     entry, guid,
     mem::memory_map::MemoryMap,
@@ -134,22 +134,45 @@ fn get_rsdp_addr() -> Result<u64, Status> {
     Err(Status::LOAD_ERROR)
 }
 
+fn wait_for_key_press() -> Result<(), Status> {
+    unsafe {
+        let _ = wait_for_event(&mut [Event::from_ptr(
+            (*(system_table_raw().ok_or(Status::LOAD_ERROR)?.as_ref().stdin)).wait_for_key,
+        )
+        .ok_or(Status::LOAD_ERROR)?])
+        .map_err(|e| e.status())?;
+    }
+    Ok(())
+}
+
 #[entry]
 fn main() -> Status {
+    match uefi::helpers::init() {
+        Ok(_) => {}
+        Err(e) => return e.status(),
+    };
+
     let entry = match load_kernel() {
         Ok(addr) => addr,
         Err(e) => return e,
     };
+    log::info!("Kernel entry: {:#x}", entry);
 
     let (frame_buffer_base, width, height, stride) = match get_graphics_output_config() {
         Ok(info) => info,
         Err(e) => return e,
     };
+    log::info!("Frame buffer base: {:#x}", frame_buffer_base);
+    log::info!("Screen width: {width}, height: {height}, stride: {stride}");
 
     let rsdp_addr = match get_rsdp_addr() {
         Ok(p) => p,
         Err(e) => return e,
     };
+    log::info!("RSDP address: {:#x}", rsdp_addr);
+
+    log::info!("Press any key to continue......");
+    wait_for_key_press();
 
     unsafe {
         let memory_map_owned = exit_boot_services(None);
