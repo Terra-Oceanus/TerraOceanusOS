@@ -30,6 +30,7 @@ pub struct Cursor {
     pub ptr: *mut u32,
 }
 impl Cursor {
+    #[inline(never)]
     pub fn init() {
         unsafe {
             CURSOR.ptr = (frame_buffer::base() as *mut u32)

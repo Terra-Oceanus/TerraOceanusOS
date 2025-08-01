@@ -4,5 +4,6 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-uefi = { version = "0.35.0", features = ["panic_handler"] }
+uefi = { version = "0.35.0", features = ["logger", "panic_handler"] }
+log = "0.4.27"
 xmas-elf = "0.10.0"
