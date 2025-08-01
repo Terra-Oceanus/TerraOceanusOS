@@ -1,49 +1,82 @@
+BOOT_TARGET := x86_64-unknown-uefi
+KERNEL_TARGET := x86_64-unknown-none
+
+DISK_IMG := disk.img
+BOOT_PART := ESP
+KERNEL_PART := MAIN
+
 all: run
 
 download:
-	rustup run nightly rustc -Z unstable-options --target x86_64-unknown-uefi --print target-spec-json > bootloader/target.json
-	rustup run nightly rustc -Z unstable-options --target x86_64-unknown-none --print target-spec-json > kernel/target.json
+	rustup run nightly rustc -Z unstable-options --target $(BOOT_TARGET) --print target-spec-json > bootloader/target.json
+	rustup run nightly rustc -Z unstable-options --target $(KERNEL_TARGET) --print target-spec-json > kernel/target.json
 
 build:
-	cargo build --manifest-path=bootloader/Cargo.toml --release --target x86_64-unknown-uefi
+	cargo build --manifest-path=bootloader/Cargo.toml --release --target $(BOOT_TARGET)
 
 	RUSTFLAGS=" \
 		-C relocation-model=static \
 		-C link-arg=-no-pie \
 		-C link-args=-Tkernel/kernel.ld \
 		" \
-	cargo build --manifest-path=kernel/Cargo.toml --release --target x86_64-unknown-none
+	cargo build --manifest-path=kernel/Cargo.toml --release --target $(KERNEL_TARGET)
 
-copy: build
-	cp target/x86_64-unknown-uefi/release/bootloader.efi ESP/EFI/BOOT/BOOTX64.EFI
-	cp target/x86_64-unknown-none/release/kernel ESP/kernel
+show: build
+	readelf -l target/$(KERNEL_TARGET)/release/kernel
 
-show: copy
-	readelf -l ESP/kernel
+disk: build
+	rm -f $(DISK_IMG)
+	dd if=/dev/zero of=$(DISK_IMG) bs=1M count=512
 
-debug: copy
+	parted $(DISK_IMG) --script \
+		mklabel gpt \
+		mkpart $(BOOT_PART) fat32 1MiB 64MiB \
+		set 1 esp on \
+		mkpart $(KERNEL_PART) fat32 64MiB 100%
+
+	@LOOP=$$(sudo losetup -Pf --show $(DISK_IMG)); \
+		sleep 1; \
+		\
+		sudo mkfs.vfat -F 32 $${LOOP}p1; \
+		mkdir -p mnt/$(BOOT_PART); \
+		sudo mount $${LOOP}p1 mnt/$(BOOT_PART); \
+		sudo mkdir -p mnt/$(BOOT_PART)/EFI/BOOT; \
+		sudo cp target/$(BOOT_TARGET)/release/bootloader.efi mnt/$(BOOT_PART)/EFI/BOOT/BOOTX64.EFI; \
+		sudo umount mnt/$(BOOT_PART); \
+		\
+		sudo mkfs.vfat -F 32 $${LOOP}p2; \
+		mkdir -p mnt/$(KERNEL_PART); \
+		sudo mount $${LOOP}p2 mnt/$(KERNEL_PART); \
+		sudo cp target/$(KERNEL_TARGET)/release/kernel mnt/$(KERNEL_PART)/kernel; \
+		sudo umount mnt/$(KERNEL_PART); \
+		\
+		sudo losetup -d $${LOOP}
+
+	rm -rf mnt
+
+debug: disk
 	qemu-system-x86_64 \
 		-enable-kvm \
 		-cpu host,-svm \
 		-smp 2 \
 		-drive if=pflash,format=raw,readonly=on,file=OVMF/OVMF_CODE_4M.fd \
 		-drive if=pflash,format=raw,readonly=on,file=OVMF/OVMF_VARS_4M.fd \
-		-drive format=raw,file=fat:rw:ESP \
+		-drive file=$(DISK_IMG),format=raw,if=virtio \
 		-S -s
 
 gdb:
-	rust-gdb target/x86_64-unknown-none/release/kernel
+	rust-gdb target/$(KERNEL_TARGET)/release/kernel
 
-run: copy
+run: disk
 	qemu-system-x86_64 \
 		-enable-kvm \
 		-cpu host,-svm \
 		-smp 2 \
 		-drive if=pflash,format=raw,readonly=on,file=OVMF/OVMF_CODE_4M.fd \
 		-drive if=pflash,format=raw,readonly=on,file=OVMF/OVMF_VARS_4M.fd \
-		-drive format=raw,file=fat:rw:ESP
+		-drive file=$(DISK_IMG),format=raw,if=virtio
 
 clean:
 	rm -rf target/
 
-.PHONY: all download build copy show debug gdb run clean
+.PHONY: all download build show disk debug gdb run clean
