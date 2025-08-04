@@ -1,6 +1,7 @@
 //! Error
 
 pub enum ACPI {
+    InvalidAddress,
     InvalidSignature,
     InvalidChecksum,
     InvalidRevision,
