@@ -4,7 +4,7 @@ use core::ptr::{addr_of, read_unaligned};
 
 use crate::error::{ACPI, Error};
 
-use super::{FromAddr, Header, fadt, madt};
+use super::{FromAddr, Header, fadt, madt, mcfg};
 
 static mut ADDR: u64 = 0;
 
@@ -28,6 +28,7 @@ impl XSDT {
             match &unsafe { &*(entry as *const Header) }.signature {
                 fadt::SIGNATURE => fadt::set_config(entry),
                 madt::SIGNATURE => madt::set_config(entry),
+                mcfg::SIGNATURE => mcfg::set_config(entry),
                 _ => {}
             };
         }
