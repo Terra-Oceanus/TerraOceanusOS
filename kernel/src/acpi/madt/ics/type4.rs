@@ -2,13 +2,9 @@
 //!
 //! NMI stands for Non-Maskable Interrupt
 
-use crate::{
-    Output,
-    error::{ACPI, Error},
-    init_message,
-};
+use crate::error::{ACPI, Error};
 
-use super::{FromAddr, Header, polarity_to_str, trigger_mode_to_str};
+use super::{FromAddr, Header};
 
 #[repr(C, packed)]
 struct Type4 {
@@ -32,25 +28,6 @@ impl Type4 {
         if self.flags & !0b1111 != 0 {
             return Err(Error::ACPI(ACPI::InvalidReserved));
         }
-        let polarity = (self.flags & 0b11) as u8;
-        let trigger_mode = ((self.flags >> 2) & 0b11) as u8;
-        init_message!(false, false, "NMI for ACPI Processor UID(");
-        if self.acpi_processor_uid == 0xFF {
-            init_message!(false, false, "All");
-        } else {
-            init_message!(false, false, self.acpi_processor_uid as usize);
-        }
-        init_message!(
-            false,
-            true,
-            ") with polarity(",
-            polarity_to_str(polarity),
-            ") & trigger mode(",
-            trigger_mode_to_str(trigger_mode),
-            ") & Local APIC LINT(",
-            self.local_apic_lint as usize,
-            ") detected"
-        );
         Ok(())
     }
 }

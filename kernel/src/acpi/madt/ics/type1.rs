@@ -1,9 +1,7 @@
 //! I/O APIC
 
 use crate::{
-    Output,
     error::{ACPI, Error},
-    init_message,
     x86_64::apic::ioapic,
 };
 
@@ -31,19 +29,7 @@ impl Type1 {
         }
         let addr = self.io_apic_address;
         let base = self.global_system_interrupt_base;
-        init_message!(
-            false,
-            false,
-            "I/O APIC with ID(",
-            self.io_apic_id as usize,
-            ") & Address(",
-            addr as u64,
-            ") & GSI Base(",
-            base as usize,
-            ") detected..."
-        );
         ioapic::append(addr, base)?;
-        init_message!(false, true, "recorded");
         Ok(())
     }
 }
