@@ -104,6 +104,7 @@ impl Output for &str {
 impl Output for Error {
     fn output(&self) {
         match self {
+            Error::ACPI(ACPI::InvalidAddress) => "\nACPI Error: InvalidAddress\n",
             Error::ACPI(ACPI::InvalidSignature) => "\nACPI Error: Invalid Signature\n",
             Error::ACPI(ACPI::InvalidChecksum) => "\nACPI Error: Invalid Checksum\n",
             Error::ACPI(ACPI::InvalidRevision) => "\nACPI Error: Invalid Revision\n",

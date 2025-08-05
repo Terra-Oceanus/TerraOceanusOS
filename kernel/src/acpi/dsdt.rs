@@ -15,6 +15,8 @@ pub fn set_config(addr: u64) {
 #[repr(C, packed)]
 struct DSDT {
     header: Header,
+
+    definition_block: [u8; 0],
 }
 impl DSDT {
     fn init(&self) -> Result<(), Error> {
