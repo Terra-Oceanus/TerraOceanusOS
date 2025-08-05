@@ -2,17 +2,11 @@
 
 use core::ptr::{read_volatile, write_volatile};
 
-use crate::{Error, Output, init_check, init_end, init_message, init_start};
+use crate::error::Error;
 
 mod timer;
 
-static mut ADDR: u64 = 0;
-
-pub fn set_config(addr: u32) {
-    unsafe {
-        ADDR = addr as u64;
-    }
-}
+static mut ADDR: u32 = 0;
 
 #[repr(u16)]
 enum Local {
@@ -282,27 +276,22 @@ enum Local {
 
 #[inline(always)]
 fn read(reg: Local) -> u32 {
-    unsafe { read_volatile((ADDR + reg as u64) as *const u32) }
+    unsafe { read_volatile((ADDR + reg as u32) as *const u32) }
 }
 
 #[inline(always)]
 fn write(reg: Local, value: u32) {
-    unsafe { write_volatile((ADDR + reg as u64) as *mut u32, value) }
+    unsafe { write_volatile((ADDR + reg as u32) as *mut u32, value) }
 }
 
-pub fn init() -> Result<(), Error> {
-    init_check!(unsafe { ADDR });
-    init_start!();
-    init_message!(true, false, "Local APIC is ");
+pub fn init(addr: u32) -> Result<(), Error> {
+    unsafe { ADDR = addr };
     let mut sivr = read(Local::SIVR);
     if (sivr >> 8) & 1 == 0 {
-        init_message!(false, false, "disabled...");
         sivr |= 1 << 8;
         write(Local::SIVR, sivr);
     };
-    init_message!(false, true, "enabled");
     timer::init();
-    init_end!();
     Ok(())
 }
 

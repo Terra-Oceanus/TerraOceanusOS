@@ -11,7 +11,7 @@ use crate::{
 mod dsdt;
 mod facs;
 mod fadt;
-mod madt;
+pub mod madt;
 mod rsdp;
 mod xsdt;
 
@@ -42,7 +42,6 @@ pub fn init(rsdp_addr: u64) -> Result<(), Error> {
     fadt::init()?;
     facs::init()?;
     dsdt::init()?;
-    madt::init()?;
     init_end!();
     Ok(())
 }
