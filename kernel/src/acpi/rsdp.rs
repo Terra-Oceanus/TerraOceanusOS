@@ -1,12 +1,8 @@
 //! Root System Description Pointer
 
-use crate::{
-    Output,
-    error::{ACPI, Error},
-    init_check, init_end, init_message, init_start,
-};
+use crate::error::{ACPI, Error};
 
-use super::{Checksum, FromAddr, xsdt};
+use super::{Checksum, FromAddr};
 
 static mut ADDR: u64 = 0;
 
@@ -54,8 +50,7 @@ struct RSDP {
     reserved: [u8; 3],
 }
 impl RSDP {
-    fn init(&self) -> Result<(), Error> {
-        init_start!();
+    fn init(&self) -> Result<u64, Error> {
         self.rsdp1_0.init()?;
         if self.length != size_of::<Self>() as u32 {
             return Err(Error::ACPI(ACPI::InvalidLength));
@@ -66,16 +61,14 @@ impl RSDP {
         if self.reserved.iter().any(|&b| b != 0) {
             return Err(Error::ACPI(ACPI::InvalidReserved));
         }
-        init_message!(true, false, "Table XSDT detected...");
-        xsdt::set_config(self.xsdt_address);
-        init_message!(false, true, "recorded");
-        init_end!();
-        Ok(())
+        Ok(self.xsdt_address)
     }
 }
 
-pub fn init(addr: u64) -> Result<(), Error> {
+pub fn init(addr: u64) -> Result<u64, Error> {
+    if addr == 0 {
+        return Err(Error::ACPI(ACPI::InvalidAddress));
+    }
     unsafe { ADDR = addr };
-    init_check!(addr);
     RSDP::get_ref(addr).init()
 }

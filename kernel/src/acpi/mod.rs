@@ -2,11 +2,7 @@
 
 use core::slice::from_raw_parts;
 
-use crate::{
-    Output,
-    error::{ACPI, Error},
-    init_end, init_start,
-};
+use crate::error::{ACPI, Error};
 
 mod dsdt;
 mod facs;
@@ -37,14 +33,9 @@ trait Checksum {
 impl<T> Checksum for T {}
 
 pub fn init(rsdp_addr: u64) -> Result<(), Error> {
-    init_start!();
-    rsdp::init(rsdp_addr)?;
-    xsdt::init()?;
+    let xsdt_addr = rsdp::init(rsdp_addr)?;
+    xsdt::init(xsdt_addr)?;
     fadt::init()?;
-    facs::init()?;
-    dsdt::init()?;
-    madt::init()?;
-    init_end!();
     Ok(())
 }
 

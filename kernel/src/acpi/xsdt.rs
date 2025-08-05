@@ -2,11 +2,7 @@
 
 use core::ptr::{addr_of, read_unaligned};
 
-use crate::{
-    Output,
-    error::{ACPI, Error},
-    init_check, init_end, init_message, init_start,
-};
+use crate::error::{ACPI, Error};
 
 use super::{FromAddr, Header, fadt, madt};
 
@@ -24,40 +20,25 @@ struct XSDT {
 }
 impl XSDT {
     fn init(&self) -> Result<(), Error> {
-        init_start!();
         self.header.init(*b"XSDT")?;
-        let n = (self.header.length as usize - size_of::<Self>()) / size_of::<u64>();
+        let count = (self.header.length as usize - size_of::<Self>()) / size_of::<u64>();
         let entries = addr_of!(self.entries) as *const u64;
-        for i in 0..n {
+        for i in 0..count {
             let entry = unsafe { read_unaligned(entries.add(i)) };
-            let signature = &unsafe { &*(entry as *const Header) }.signature;
-            init_message!(
-                true,
-                true,
-                "Table with signature(",
-                str::from_utf8(signature).map_err(|_e| Error::ACPI(ACPI::InvalidSignature))?,
-                ") detected...",
-                match signature {
-                    fadt::SIGNATURE => {
-                        fadt::set_config(entry);
-                        "recorded"
-                    }
-                    madt::SIGNATURE => {
-                        madt::set_config(entry);
-                        "recorded"
-                    }
-                    _ => "ignored",
-                }
-            );
+            match &unsafe { &*(entry as *const Header) }.signature {
+                fadt::SIGNATURE => fadt::set_config(entry),
+                madt::SIGNATURE => madt::set_config(entry),
+                _ => {}
+            };
         }
-        init_end!();
         Ok(())
     }
 }
 
-pub fn init() -> Result<(), Error> {
-    unsafe {
-        init_check!(ADDR);
-        XSDT::get_ref(ADDR).init()
+pub fn init(addr: u64) -> Result<(), Error> {
+    if addr == 0 {
+        return Err(Error::ACPI(ACPI::InvalidAddress));
     }
+    unsafe { ADDR = addr };
+    XSDT::get_ref(addr).init()
 }

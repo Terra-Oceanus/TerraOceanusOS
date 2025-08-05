@@ -1,6 +1,6 @@
 //! Fixed ACPI Description Table
 
-use crate::{Error, Output, init_check, init_end, init_message, init_start};
+use crate::error::{ACPI, Error};
 
 use super::{FromAddr, Header, dsdt, facs};
 
@@ -320,42 +320,15 @@ struct FADT {
 }
 impl FADT {
     fn init(&self) -> Result<(), Error> {
-        init_start!();
         self.header.init(*SIGNATURE)?;
-        init_message!(
-            true,
-            false,
-            "Version ",
-            self.header.revision as usize,
-            ".",
-            (self.fadt_minor_version & 0b1111) as usize,
-        );
-        let errata = (self.fadt_minor_version >> 4) & 0b1111;
-        if errata != 0 {
-            init_message!(false, false, " Errata ", (errata - 1 + 'A' as u8) as char);
-        }
-        init_message!(false, true, " detected");
-        if (self.flags >> 20) & 1 == 1 {
-            init_message!(true, false, "Table FACS detected...");
-            facs::set_config(match self.x_firmware_ctrl {
-                0 => self.firmware_ctrl as u64,
-                addr => {
-                    init_message!(false, false, "extended...");
-                    addr
-                }
-            });
-            init_message!(false, true, "recorded");
-        }
-        init_message!(true, false, "Table DSDT detected...");
+        facs::set_config(match self.x_firmware_ctrl {
+            0 => self.firmware_ctrl as u64,
+            addr => addr,
+        });
         dsdt::set_config(match self.x_dsdt {
             0 => self.dsdt as u64,
-            addr => {
-                init_message!(false, false, "extended...");
-                addr
-            }
+            addr => addr,
         });
-        init_message!(false, true, "recorded");
-        init_end!();
         Ok(())
     }
 
@@ -377,7 +350,9 @@ impl FADT {
 
 pub fn init() -> Result<(), Error> {
     unsafe {
-        init_check!(ADDR);
+        if ADDR == 0 {
+            return Err(Error::ACPI(ACPI::InvalidAddress));
+        }
         FADT::get_ref(ADDR).init()
     }
 }
