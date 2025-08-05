@@ -12,6 +12,7 @@ mod dsdt;
 mod facs;
 mod fadt;
 mod madt;
+mod mcfg;
 mod rsdp;
 mod xsdt;
 
