@@ -1,6 +1,6 @@
 //! Firmware ACPI Control Structure
 
-use crate::{Error, Output, init_check, init_end, init_start};
+use crate::error::Error;
 
 use super::{FromAddr, Header};
 
@@ -18,16 +18,11 @@ struct FACS {
 }
 impl FACS {
     fn init(&self) -> Result<(), Error> {
-        init_start!();
         self.header.init(*SIGNATURE)?;
-        init_end!();
         Ok(())
     }
 }
 
 pub fn init() -> Result<(), Error> {
-    unsafe {
-        init_check!(ADDR);
-        FACS::get_ref(ADDR).init()
-    }
+    unsafe { FACS::get_ref(ADDR).init() }
 }

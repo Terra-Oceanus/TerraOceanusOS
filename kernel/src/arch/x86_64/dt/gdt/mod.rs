@@ -2,8 +2,6 @@
 
 use core::{arch::asm, ptr::addr_of};
 
-use crate::{Output, init_end, init_message, init_start};
-
 use super::Descriptor;
 
 mod tss;
@@ -153,7 +151,6 @@ impl Table {
 }
 
 pub fn init() {
-    init_start!();
     let base = tss::get_addr();
     let limit = size_of::<tss::TSS>() as u64;
     unsafe {
@@ -163,14 +160,10 @@ pub fn init() {
         GDT.tss.segment_descriptor.flags |= (limit >> 16) as u8;
         GDT.tss.segment_descriptor.base_address_high = (base >> 24) as u8;
         GDT.tss.base_address_extended = (base >> 32) as u32;
-    }
-    init_message!(true, false, "Loading GDT...");
-    unsafe {
+
         asm!(
             "lgdt [{}]",
             in(reg) &Descriptor::new::<Table>(addr_of!(GDT) as u64),
         )
     };
-    init_message!(false, true, "finished");
-    init_end!();
 }

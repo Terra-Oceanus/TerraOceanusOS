@@ -2,11 +2,7 @@
 
 use core::ptr::{read_volatile, write_volatile};
 
-use crate::{
-    Output,
-    error::{Error, IOAPIC},
-    init_check, init_end, init_start,
-};
+use crate::error::{Error, IOAPIC};
 
 use super::{super::idt::Interrupt, lapic};
 
@@ -157,8 +153,6 @@ pub fn handle_override(src: u8, dst: u32, polarity: u8, trigger_mode: u8) -> Res
 }
 
 pub fn init() -> Result<(), Error> {
-    init_check!(unsafe { COUNT });
-    init_start!();
     for i in 0..unsafe { COUNT } {
         let ioapic = &mut unsafe { IOAPICS }[i];
         for j in 0..((ioapic.read(Register::Version as u32) >> 16) & 0xFF) {
@@ -168,6 +162,5 @@ pub fn init() -> Result<(), Error> {
             }
         }
     }
-    init_end!();
     Ok(())
 }

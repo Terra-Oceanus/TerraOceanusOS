@@ -1,11 +1,7 @@
 //! IO
 
-use crate::init_end;
-
 pub mod port;
 pub mod text;
-
-use text::Output;
 
 pub fn init(
     frame_buffer_base: u64,
@@ -19,5 +15,4 @@ pub fn init(
         screen_height,
         screen_stride,
     );
-    init_end!();
 }

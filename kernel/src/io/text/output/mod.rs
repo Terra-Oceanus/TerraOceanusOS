@@ -130,5 +130,4 @@ pub fn init(
 ) {
     frame_buffer::set_config(frame_buffer_base, 4 * screen_stride * screen_height);
     screen::set_config(screen_width, screen_height, screen_stride);
-    screen::clear();
 }

@@ -2,7 +2,10 @@
 
 use core::ptr::addr_of;
 
-use crate::error::{ACPI, Error};
+use crate::{
+    Output,
+    error::{ACPI, Error},
+};
 
 use super::{FromAddr, Header};
 
@@ -57,6 +60,14 @@ impl MCFG {
         let structures = addr_of!(self.structures) as *const BaseAddressAllocationStructure;
         for i in 0..count {
             let structure = unsafe { &*structures.add(i) };
+            structure.base_address().output();
+            " ".output();
+            (structure.pci_segment_group_number() as usize).output();
+            " ".output();
+            (structure.start_pci_bus_number() as usize).output();
+            " ".output();
+            (structure.end_pci_bus_number() as usize).output();
+            "\n".output();
         }
         Ok(())
     }

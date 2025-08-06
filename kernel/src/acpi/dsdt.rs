@@ -1,6 +1,6 @@
 //! Differentiated System Description Table
 
-use crate::{Error, Output, init_check, init_end, init_start};
+use crate::error::Error;
 
 use super::{FromAddr, Header};
 
@@ -20,16 +20,11 @@ struct DSDT {
 }
 impl DSDT {
     fn init(&self) -> Result<(), Error> {
-        init_start!();
         self.header.init(*SIGNATURE)?;
-        init_end!();
         Ok(())
     }
 }
 
 pub fn init() -> Result<(), Error> {
-    unsafe {
-        init_check!(ADDR);
-        DSDT::get_ref(ADDR).init()
-    }
+    unsafe { DSDT::get_ref(ADDR).init() }
 }
