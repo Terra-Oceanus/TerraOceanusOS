@@ -48,7 +48,7 @@ impl BaseAddressAllocationStructure {
 struct MCFG {
     header: Header,
 
-    reserved: u8,
+    reserved: u64,
 
     structures: [BaseAddressAllocationStructure; 0],
 }
