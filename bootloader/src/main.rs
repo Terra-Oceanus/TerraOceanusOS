@@ -49,18 +49,18 @@ fn load_kernel() -> Result<u64, Status> {
     let mut kernel = find_kernel()?;
 
     const HEADER_SIZE: usize = 64;
+    const PROGRAM_HEADER_COUNT: usize = 3;
     const PROGRAM_HEADER_SIZE: usize = 56;
-    const MAX_PROGRAM_HEADER_COUNT: usize = 9;
-    let mut buffer = [0u8; HEADER_SIZE + MAX_PROGRAM_HEADER_COUNT * PROGRAM_HEADER_SIZE];
+    let mut buffer = [0u8; HEADER_SIZE + PROGRAM_HEADER_COUNT * PROGRAM_HEADER_SIZE];
     let read_size = kernel.read(&mut buffer).map_err(|e| e.status())?;
     let elf = ElfFile::new(&buffer).map_err(|_e| Status::LOAD_ERROR)?;
 
     // Check
-    let ph_size = elf.header.pt2.ph_entry_size() as usize;
     let ph_count = elf.header.pt2.ph_count() as usize;
-    if PROGRAM_HEADER_SIZE != ph_size
-        || MAX_PROGRAM_HEADER_COUNT < ph_count
-        || read_size < HEADER_SIZE + ph_count * ph_size
+    let ph_size = elf.header.pt2.ph_entry_size() as usize;
+    if PROGRAM_HEADER_COUNT != ph_count
+        || PROGRAM_HEADER_SIZE != ph_size
+        || read_size != HEADER_SIZE + ph_count * ph_size
     {
         return Err(Status::LOAD_ERROR);
     }
