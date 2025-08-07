@@ -1,7 +1,11 @@
 #![no_main]
 #![no_std]
 
-use core::{arch::asm, ptr::write_bytes, slice::from_raw_parts_mut};
+use core::{
+    arch::asm,
+    ptr::{self, write_bytes},
+    slice::from_raw_parts_mut,
+};
 use uefi::{
     CStr16, Event, Status,
     boot::{
@@ -149,11 +153,12 @@ fn get_rsdp_addr() -> Result<u64, Status> {
 
 fn wait_for_key_press() -> Result<(), Status> {
     unsafe {
-        let _ = wait_for_event(&mut [Event::from_ptr(
-            (*(system_table_raw().ok_or(Status::LOAD_ERROR)?.as_ref().stdin)).wait_for_key,
-        )
-        .ok_or(Status::LOAD_ERROR)?])
+        let stdin = system_table_raw().ok_or(Status::LOAD_ERROR)?.as_ref().stdin;
+        let _index = wait_for_event(&mut [
+            Event::from_ptr((&*stdin).wait_for_key).ok_or(Status::LOAD_ERROR)?
+        ])
         .map_err(|e| e.status())?;
+        let _status = ((&*stdin).read_key_stroke)(stdin, *ptr::null());
     }
     Ok(())
 }
