@@ -22,6 +22,7 @@ struct RSDP1_0 {
     /// Deprecated
     rsdt_address: u32,
 }
+impl Checksum for RSDP1_0 {}
 impl RSDP1_0 {
     fn init(&self) -> Result<(), Error> {
         if self.signature != *b"RSD PTR " {
@@ -49,6 +50,7 @@ struct RSDP {
 
     reserved: [u8; 3],
 }
+impl Checksum for RSDP {}
 impl RSDP {
     fn init(&self) -> Result<u64, Error> {
         self.rsdp1_0.init()?;
