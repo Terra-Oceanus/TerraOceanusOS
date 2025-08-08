@@ -30,7 +30,6 @@ trait Checksum {
         }
     }
 }
-impl<T> Checksum for T {}
 
 pub fn init(rsdp_addr: u64) -> Result<(), Error> {
     let xsdt_addr = rsdp::init(rsdp_addr)?;
@@ -56,6 +55,7 @@ struct Header {
     creator_id: [u8; 4],
     creator_revision: [u8; 4],
 }
+impl Checksum for Header {}
 impl Header {
     fn init(&self, signature: [u8; 4]) -> Result<(), Error> {
         if self.signature != signature {
