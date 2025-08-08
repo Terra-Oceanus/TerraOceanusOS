@@ -35,10 +35,12 @@ fn find_kernel() -> Result<RegularFile, Status> {
         .map_err(|e| e.status())?
         .iter()
     {
-        let mut file_system =
-            open_protocol_exclusive::<SimpleFileSystem>(handle).map_err(|e| e.status())?;
-        let mut root = file_system.open_volume().map_err(|e| e.status())?;
-        match root.open(name, FileMode::Read, FileAttribute::empty()) {
+        match open_protocol_exclusive::<SimpleFileSystem>(handle)
+            .map_err(|e| e.status())?
+            .open_volume()
+            .map_err(|e| e.status())?
+            .open(name, FileMode::Read, FileAttribute::empty())
+        {
             Ok(h) => match h.into_type().map_err(|e| e.status())? {
                 FileType::Regular(f) => return Ok(f),
                 FileType::Dir(_) => continue,
