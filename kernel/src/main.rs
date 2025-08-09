@@ -5,6 +5,7 @@ use core::{arch::asm, panic::PanicInfo};
 
 mod acpi;
 mod arch;
+mod drivers;
 mod error;
 mod io;
 mod memory;

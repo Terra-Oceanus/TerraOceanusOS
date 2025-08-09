@@ -8,7 +8,7 @@ mod dsdt;
 mod facs;
 mod fadt;
 pub mod madt;
-mod mcfg;
+pub mod mcfg;
 mod rsdp;
 mod xsdt;
 

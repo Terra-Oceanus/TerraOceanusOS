@@ -1,7 +1,11 @@
 #![no_main]
 #![no_std]
 
-use core::{arch::asm, ptr::write_bytes, slice::from_raw_parts_mut};
+use core::{
+    arch::asm,
+    ptr::{self, write_bytes},
+    slice::from_raw_parts_mut,
+};
 use uefi::{
     CStr16, Event, Status,
     boot::{
@@ -31,10 +35,12 @@ fn find_kernel() -> Result<RegularFile, Status> {
         .map_err(|e| e.status())?
         .iter()
     {
-        let mut file_system =
-            open_protocol_exclusive::<SimpleFileSystem>(handle).map_err(|e| e.status())?;
-        let mut root = file_system.open_volume().map_err(|e| e.status())?;
-        match root.open(name, FileMode::Read, FileAttribute::empty()) {
+        match open_protocol_exclusive::<SimpleFileSystem>(handle)
+            .map_err(|e| e.status())?
+            .open_volume()
+            .map_err(|e| e.status())?
+            .open(name, FileMode::Read, FileAttribute::empty())
+        {
             Ok(h) => match h.into_type().map_err(|e| e.status())? {
                 FileType::Regular(f) => return Ok(f),
                 FileType::Dir(_) => continue,
@@ -49,18 +55,18 @@ fn load_kernel() -> Result<u64, Status> {
     let mut kernel = find_kernel()?;
 
     const HEADER_SIZE: usize = 64;
+    const PROGRAM_HEADER_COUNT: usize = 3;
     const PROGRAM_HEADER_SIZE: usize = 56;
-    const MAX_PROGRAM_HEADER_COUNT: usize = 9;
-    let mut buffer = [0u8; HEADER_SIZE + MAX_PROGRAM_HEADER_COUNT * PROGRAM_HEADER_SIZE];
+    let mut buffer = [0u8; HEADER_SIZE + PROGRAM_HEADER_COUNT * PROGRAM_HEADER_SIZE];
     let read_size = kernel.read(&mut buffer).map_err(|e| e.status())?;
     let elf = ElfFile::new(&buffer).map_err(|_e| Status::LOAD_ERROR)?;
 
     // Check
-    let ph_size = elf.header.pt2.ph_entry_size() as usize;
     let ph_count = elf.header.pt2.ph_count() as usize;
-    if PROGRAM_HEADER_SIZE != ph_size
-        || MAX_PROGRAM_HEADER_COUNT < ph_count
-        || read_size < HEADER_SIZE + ph_count * ph_size
+    let ph_size = elf.header.pt2.ph_entry_size() as usize;
+    if PROGRAM_HEADER_COUNT != ph_count
+        || PROGRAM_HEADER_SIZE != ph_size
+        || read_size != HEADER_SIZE + ph_count * ph_size
     {
         return Err(Status::LOAD_ERROR);
     }
@@ -149,11 +155,12 @@ fn get_rsdp_addr() -> Result<u64, Status> {
 
 fn wait_for_key_press() -> Result<(), Status> {
     unsafe {
-        let _ = wait_for_event(&mut [Event::from_ptr(
-            (*(system_table_raw().ok_or(Status::LOAD_ERROR)?.as_ref().stdin)).wait_for_key,
-        )
-        .ok_or(Status::LOAD_ERROR)?])
+        let stdin = system_table_raw().ok_or(Status::LOAD_ERROR)?.as_ref().stdin;
+        let _index = wait_for_event(&mut [
+            Event::from_ptr((&*stdin).wait_for_key).ok_or(Status::LOAD_ERROR)?
+        ])
         .map_err(|e| e.status())?;
+        let _status = ((&*stdin).read_key_stroke)(stdin, *ptr::null());
     }
     Ok(())
 }
