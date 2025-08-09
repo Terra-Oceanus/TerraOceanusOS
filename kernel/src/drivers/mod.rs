@@ -2,7 +2,7 @@
 
 use crate::error::Error;
 
-mod pcie;
+pub mod pcie;
 mod storage;
 
 pub fn init() -> Result<(), Error> {
