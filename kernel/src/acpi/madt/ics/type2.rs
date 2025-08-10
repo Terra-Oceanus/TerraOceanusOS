@@ -1,11 +1,11 @@
 //! Interrupt Source Override
 
-use crate::{
-    error::{ACPI, Error},
-    x86_64::apic::ioapic,
-};
+use crate::x86_64::apic::ioapic;
 
-use super::{FromAddr, Header};
+use super::{
+    super::{Error, FromAddr},
+    Header,
+};
 
 #[repr(C, packed)]
 struct Type2 {
@@ -24,12 +24,12 @@ struct Type2 {
     flags: u16,
 }
 impl Type2 {
-    fn handle(&self) -> Result<(), Error> {
+    fn handle(&self) -> Result<(), crate::Error> {
         if self.header.length as usize != size_of::<Self>() {
-            return Err(Error::ACPI(ACPI::InvalidLength));
+            return Err(Error::InvalidLength.into());
         }
         if self.flags & !0b1111 != 0 {
-            return Err(Error::ACPI(ACPI::InvalidReserved));
+            return Err(Error::InvalidReserved.into());
         }
         ioapic::handle_override(
             self.source,
@@ -41,7 +41,6 @@ impl Type2 {
     }
 }
 
-pub fn handle(addr: u64) -> Result<(), Error> {
-    Type2::get_ref(addr).handle()?;
-    Ok(())
+pub fn handle(addr: u64) -> Result<(), crate::Error> {
+    Type2::get_ref(addr).handle()
 }

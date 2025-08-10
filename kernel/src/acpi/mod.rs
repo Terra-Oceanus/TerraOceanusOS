@@ -2,15 +2,16 @@
 
 use core::slice::from_raw_parts;
 
-use crate::error::{ACPI, Error};
-
 mod dsdt;
+mod error;
 mod facs;
 mod fadt;
 pub mod madt;
 pub mod mcfg;
 mod rsdp;
 mod xsdt;
+
+pub use error::Error;
 
 trait FromAddr: Sized {
     fn get_ref(addr: u64) -> &'static Self {
@@ -34,8 +35,7 @@ trait Checksum {
 pub fn init(rsdp_addr: u64) -> Result<(), Error> {
     let xsdt_addr = rsdp::init(rsdp_addr)?;
     xsdt::init(xsdt_addr)?;
-    fadt::init()?;
-    Ok(())
+    fadt::init()
 }
 
 #[repr(C, packed)]
@@ -59,10 +59,10 @@ impl Checksum for Header {}
 impl Header {
     fn init(&self, signature: [u8; 4]) -> Result<(), Error> {
         if self.signature != signature {
-            return Err(Error::ACPI(ACPI::InvalidSignature));
+            return Err(Error::InvalidSignature);
         }
         if !self.checksum(self.length as usize) {
-            return Err(Error::ACPI(ACPI::InvalidChecksum));
+            return Err(Error::InvalidChecksum);
         }
         Ok(())
     }

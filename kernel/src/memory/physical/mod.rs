@@ -1,8 +1,6 @@
 //! Physical
 
-use crate::error::Error;
-
-use super::PAGE_SIZE;
+use super::{Error, PAGE_SIZE};
 
 mod buddy_allocator;
 

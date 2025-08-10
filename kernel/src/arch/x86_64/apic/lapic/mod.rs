@@ -2,8 +2,6 @@
 
 use core::ptr::{read_volatile, write_volatile};
 
-use crate::error::Error;
-
 mod timer;
 
 static mut ADDR: u32 = 0;
@@ -284,7 +282,7 @@ fn write(reg: Local, value: u32) {
     unsafe { write_volatile((ADDR + reg as u32) as *mut u32, value) }
 }
 
-pub fn init(addr: u32) -> Result<(), Error> {
+pub fn init(addr: u32) {
     unsafe { ADDR = addr };
     let mut sivr = read(Local::SIVR);
     if (sivr >> 8) & 1 == 0 {
@@ -292,7 +290,6 @@ pub fn init(addr: u32) -> Result<(), Error> {
         write(Local::SIVR, sivr);
     };
     timer::init();
-    Ok(())
 }
 
 pub fn id() -> u32 {

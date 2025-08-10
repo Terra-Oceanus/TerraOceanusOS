@@ -2,9 +2,7 @@
 
 use core::ptr::{addr_of, read_unaligned};
 
-use crate::error::{ACPI, Error};
-
-use super::{FromAddr, Header, fadt, madt, mcfg};
+use super::{Error, FromAddr, Header, fadt, madt, mcfg};
 
 static mut ADDR: u64 = 0;
 
@@ -38,7 +36,7 @@ impl XSDT {
 
 pub fn init(addr: u64) -> Result<(), Error> {
     if addr == 0 {
-        return Err(Error::ACPI(ACPI::InvalidAddress));
+        return Err(Error::InvalidAddress);
     }
     unsafe { ADDR = addr };
     XSDT::get_ref(addr).init()

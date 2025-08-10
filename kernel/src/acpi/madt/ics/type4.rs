@@ -2,9 +2,10 @@
 //!
 //! NMI stands for Non-Maskable Interrupt
 
-use crate::error::{ACPI, Error};
-
-use super::{FromAddr, Header};
+use super::{
+    super::{Error, FromAddr},
+    Header,
+};
 
 #[repr(C, packed)]
 struct Type4 {
@@ -23,16 +24,15 @@ struct Type4 {
 impl Type4 {
     fn handle(&self) -> Result<(), Error> {
         if self.header.length as usize != size_of::<Self>() {
-            return Err(Error::ACPI(ACPI::InvalidLength));
+            return Err(Error::InvalidLength);
         }
         if self.flags & !0b1111 != 0 {
-            return Err(Error::ACPI(ACPI::InvalidReserved));
+            return Err(Error::InvalidReserved);
         }
         Ok(())
     }
 }
 
 pub fn handle(addr: u64) -> Result<(), Error> {
-    Type4::get_ref(addr).handle()?;
-    Ok(())
+    Type4::get_ref(addr).handle()
 }

@@ -1,8 +1,6 @@
 //! Root System Description Pointer
 
-use crate::error::{ACPI, Error};
-
-use super::{Checksum, FromAddr};
+use super::{Checksum, Error, FromAddr};
 
 static mut ADDR: u64 = 0;
 
@@ -26,13 +24,13 @@ impl Checksum for RSDP1_0 {}
 impl RSDP1_0 {
     fn init(&self) -> Result<(), Error> {
         if self.signature != *b"RSD PTR " {
-            return Err(Error::ACPI(ACPI::InvalidSignature));
+            return Err(Error::InvalidSignature);
         }
         if !self.checksum(size_of::<Self>()) {
-            return Err(Error::ACPI(ACPI::InvalidChecksum));
+            return Err(Error::InvalidChecksum);
         }
         if self.revision != 2 {
-            return Err(Error::ACPI(ACPI::InvalidRevision));
+            return Err(Error::InvalidRevision);
         }
         Ok(())
     }
@@ -55,13 +53,13 @@ impl RSDP {
     fn init(&self) -> Result<u64, Error> {
         self.rsdp1_0.init()?;
         if self.length != size_of::<Self>() as u32 {
-            return Err(Error::ACPI(ACPI::InvalidLength));
+            return Err(Error::InvalidLength);
         }
         if !self.checksum(self.length as usize) {
-            return Err(Error::ACPI(ACPI::InvalidChecksum));
+            return Err(Error::InvalidChecksum);
         }
         if self.reserved.iter().any(|&b| b != 0) {
-            return Err(Error::ACPI(ACPI::InvalidReserved));
+            return Err(Error::InvalidReserved);
         }
         Ok(self.xsdt_address)
     }
@@ -69,7 +67,7 @@ impl RSDP {
 
 pub fn init(addr: u64) -> Result<u64, Error> {
     if addr == 0 {
-        return Err(Error::ACPI(ACPI::InvalidAddress));
+        return Err(Error::InvalidAddress);
     }
     unsafe { ADDR = addr };
     RSDP::get_ref(addr).init()

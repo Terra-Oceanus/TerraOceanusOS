@@ -1,7 +1,5 @@
 //! Output
 
-use crate::error::{ACPI, Error, IOAPIC, Memory};
-
 use super::Cursor;
 
 pub mod font;
@@ -9,7 +7,7 @@ pub mod frame_buffer;
 pub mod screen;
 
 pub trait Output {
-    fn output(&self) {}
+    fn output(&self);
 }
 impl Output for usize {
     fn output(&self) {
@@ -99,26 +97,6 @@ impl Output for &str {
         for c in self.chars() {
             c.output();
         }
-    }
-}
-impl Output for Error {
-    fn output(&self) {
-        match self {
-            Error::ACPI(ACPI::InvalidAddress) => "\nACPI Error: InvalidAddress\n",
-            Error::ACPI(ACPI::InvalidSignature) => "\nACPI Error: Invalid Signature\n",
-            Error::ACPI(ACPI::InvalidChecksum) => "\nACPI Error: Invalid Checksum\n",
-            Error::ACPI(ACPI::InvalidRevision) => "\nACPI Error: Invalid Revision\n",
-            Error::ACPI(ACPI::InvalidLength) => "\nACPI Error: Invalid Length\n",
-            Error::ACPI(ACPI::InvalidReserved) => "\nACPI Error: Invalid Reserved\n",
-            Error::IOAPIC(IOAPIC::MaxCountReached) => "\nI/O APIC Error: Max Count Reached\n",
-            Error::IOAPIC(IOAPIC::InvalidGSIIndex) => "\nI/O APIC Error: Invalid GSI Index\n",
-            Error::Memory(Memory::InvalidAllocationSize) => {
-                "\nMemory Error: Invalid Allocation Size\n"
-            }
-            Error::Memory(Memory::OutOfMemory) => "\nMemory Error: Out Of Memory\n",
-            Error::Memory(Memory::InvalidIndex) => "\nMemory Error: Invalid Index\n",
-        }
-        .output();
     }
 }
 

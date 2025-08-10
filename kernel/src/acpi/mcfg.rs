@@ -2,12 +2,9 @@
 
 use core::ptr::addr_of;
 
-use crate::{
-    Output,
-    error::{ACPI, Error},
-};
+use crate::drivers::pcie;
 
-use super::{FromAddr, Header};
+use super::{Error, FromAddr, Header};
 
 pub const SIGNATURE: &[u8; 4] = b"MCFG";
 
@@ -76,7 +73,7 @@ impl MCFG {
 pub fn init() -> Result<(), Error> {
     unsafe {
         if ADDR == 0 {
-            return Err(Error::ACPI(ACPI::InvalidAddress));
+            return Err(Error::InvalidAddress);
         }
         MCFG::get_ref(ADDR).init()
     }

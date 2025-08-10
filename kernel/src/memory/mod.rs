@@ -1,8 +1,9 @@
 //! Memory
 
-use crate::error::Error;
-
+mod error;
 mod physical;
+
+pub use error::Error;
 
 const PAGE_SIZE: u64 = 0x1000;
 

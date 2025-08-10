@@ -1,10 +1,11 @@
 //! Drivers
 
-use crate::error::Error;
-
-mod pcie;
+mod error;
+pub mod pcie;
 mod storage;
 
-pub fn init() -> Result<(), Error> {
+pub use error::Error;
+
+pub fn init() -> Result<(), crate::Error> {
     pcie::init()
 }

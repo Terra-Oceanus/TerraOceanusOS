@@ -1,8 +1,9 @@
 //! Processor Local APIC
 
-use crate::error::{ACPI, Error};
-
-use super::{FromAddr, Header};
+use super::{
+    super::{Error, FromAddr},
+    Header,
+};
 
 #[repr(C, packed)]
 struct Type0 {
@@ -20,16 +21,16 @@ struct Type0 {
 impl Type0 {
     fn handle(&self) -> Result<(), Error> {
         if self.header.length as usize != size_of::<Self>() {
-            return Err(Error::ACPI(ACPI::InvalidLength));
+            return Err(Error::InvalidLength);
         }
         if self.flags & 1 == 1 {
             if self.flags & !1 != 0 {
-                return Err(Error::ACPI(ACPI::InvalidReserved));
+                return Err(Error::InvalidReserved);
             }
         } else {
             if self.flags >> 1 & 1 == 1 {
                 if self.flags & !0b11 != 0 {
-                    return Err(Error::ACPI(ACPI::InvalidReserved));
+                    return Err(Error::InvalidReserved);
                 }
             }
         }
@@ -38,6 +39,5 @@ impl Type0 {
 }
 
 pub fn handle(addr: u64) -> Result<(), Error> {
-    Type0::get_ref(addr).handle()?;
-    Ok(())
+    Type0::get_ref(addr).handle()
 }

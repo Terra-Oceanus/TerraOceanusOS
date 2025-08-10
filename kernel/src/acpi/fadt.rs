@@ -1,8 +1,6 @@
 //! Fixed ACPI Description Table
 
-use crate::error::{ACPI, Error};
-
-use super::{FromAddr, Header, dsdt, facs};
+use super::{Error, FromAddr, Header, dsdt, facs};
 
 pub const SIGNATURE: &[u8; 4] = b"FACP";
 
@@ -351,7 +349,7 @@ impl FADT {
 pub fn init() -> Result<(), Error> {
     unsafe {
         if ADDR == 0 {
-            return Err(Error::ACPI(ACPI::InvalidAddress));
+            return Err(Error::InvalidAddress);
         }
         FADT::get_ref(ADDR).init()
     }
