@@ -2,9 +2,9 @@
 
 use core::slice;
 
-use crate::drivers::pcie;
+use crate::{drivers::pcie, traits::FromAddr};
 
-use super::{Error, FromAddr, Header};
+use super::{Error, Header};
 
 pub const SIGNATURE: &[u8; 4] = b"MCFG";
 
@@ -34,6 +34,7 @@ struct MCFG {
 
     structures: [AllocationStructure; 0],
 }
+impl FromAddr for MCFG {}
 impl MCFG {
     fn init(&self) -> Result<(), Error> {
         self.header.init(*SIGNATURE)?;

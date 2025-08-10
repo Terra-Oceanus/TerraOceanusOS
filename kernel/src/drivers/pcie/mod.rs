@@ -1,6 +1,13 @@
 //! Peripheral Component Interconnect Express
 
-use crate::{acpi::mcfg, error::Error};
+use crate::{acpi::mcfg, traits::FromAddr};
+
+pub mod error;
+mod type0;
+mod type1;
+mod type2;
+
+pub use error::Error;
 
 #[repr(C, packed)]
 pub struct Header {
@@ -49,16 +56,14 @@ pub struct Header {
     latency_timer: u8,
 
     /// - Bits 0 ..= 6: Header Type
-    /// - - 0: Standard Header
-    /// - - 1: PCI-to-PCI Bridge
-    /// - - 2: PCI-to-CardBus Bridge
     /// - Bit 7: MF
-    /// - - 0: Single function
-    /// - - 1: Multiple functions
+    /// - - 0: Single Function
+    /// - - 1: Multiple Functions
     header_type: u8,
 
     built_in_self_test: u8,
 }
+impl FromAddr for Header {}
 impl Header {
     pub fn is_present(&self) -> bool {
         self.vendor_id != 0xFFFF
@@ -67,8 +72,18 @@ impl Header {
     pub fn is_multi_function(&self) -> bool {
         (self.header_type & 0b10000000) != 0
     }
+
+    pub fn handle(&self) -> Result<(), Error> {
+        match self.header_type & 0b01111111 {
+            0 => type0::handle(self as *const Self as u64),
+            1 => Ok(()),
+            2 => Ok(()),
+            _ => Err(Error::InvalidHeaderType),
+        }
+    }
 }
 
-pub fn init() -> Result<(), Error> {
-    mcfg::init()
+pub fn init() -> Result<(), crate::Error> {
+    mcfg::init()?;
+    Ok(())
 }
