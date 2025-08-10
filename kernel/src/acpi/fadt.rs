@@ -1,6 +1,8 @@
 //! Fixed ACPI Description Table
 
-use super::{Error, FromAddr, Header, dsdt, facs};
+use crate::traits::FromAddr;
+
+use super::{Error, Header, dsdt, facs};
 
 pub const SIGNATURE: &[u8; 4] = b"FACP";
 
@@ -316,6 +318,7 @@ struct FADT {
 
     hypervisor_vendor_identity: u64,
 }
+impl FromAddr for FADT {}
 impl FADT {
     fn init(&self) -> Result<(), Error> {
         self.header.init(*SIGNATURE)?;

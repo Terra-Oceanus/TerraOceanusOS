@@ -9,6 +9,7 @@ mod drivers;
 mod error;
 mod io;
 mod memory;
+mod traits;
 
 use arch::x86_64;
 use error::Error;

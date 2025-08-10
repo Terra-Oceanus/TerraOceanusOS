@@ -1,11 +1,8 @@
 //! Interrupt Source Override
 
-use crate::x86_64::apic::ioapic;
+use crate::{traits::FromAddr, x86_64::apic::ioapic};
 
-use super::{
-    super::{Error, FromAddr},
-    Header,
-};
+use super::{super::Error, Header};
 
 #[repr(C, packed)]
 struct Type2 {
@@ -23,6 +20,7 @@ struct Type2 {
     /// - Bits 4 ..= 15: Reserved
     flags: u16,
 }
+impl FromAddr for Type2 {}
 impl Type2 {
     fn handle(&self) -> Result<(), crate::Error> {
         if self.header.length as usize != size_of::<Self>() {

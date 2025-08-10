@@ -13,13 +13,6 @@ mod xsdt;
 
 pub use error::Error;
 
-trait FromAddr: Sized {
-    fn get_ref(addr: u64) -> &'static Self {
-        unsafe { &*(addr as *const Self) }
-    }
-}
-impl<T> FromAddr for T {}
-
 trait Checksum {
     fn checksum(&self, size: usize) -> bool {
         unsafe {

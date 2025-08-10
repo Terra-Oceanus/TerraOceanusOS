@@ -1,6 +1,8 @@
 //! Differentiated System Description Table
 
-use super::{Error, FromAddr, Header};
+use crate::traits::FromAddr;
+
+use super::{Error, Header};
 
 pub const SIGNATURE: &[u8; 4] = b"DSDT";
 
@@ -16,6 +18,7 @@ struct DSDT {
 
     definition_block: [u8; 0],
 }
+impl FromAddr for DSDT {}
 impl DSDT {
     fn init(&self) -> Result<(), Error> {
         self.header.init(*SIGNATURE)

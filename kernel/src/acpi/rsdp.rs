@@ -1,6 +1,8 @@
 //! Root System Description Pointer
 
-use super::{Checksum, Error, FromAddr};
+use crate::traits::FromAddr;
+
+use super::{Checksum, Error};
 
 static mut ADDR: u64 = 0;
 
@@ -20,6 +22,7 @@ struct RSDP1_0 {
     /// Deprecated
     rsdt_address: u32,
 }
+impl FromAddr for RSDP1_0 {}
 impl Checksum for RSDP1_0 {}
 impl RSDP1_0 {
     fn init(&self) -> Result<(), Error> {
@@ -48,6 +51,7 @@ struct RSDP {
 
     reserved: [u8; 3],
 }
+impl FromAddr for RSDP {}
 impl Checksum for RSDP {}
 impl RSDP {
     fn init(&self) -> Result<u64, Error> {

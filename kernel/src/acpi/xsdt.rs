@@ -2,7 +2,9 @@
 
 use core::ptr::{addr_of, read_unaligned};
 
-use super::{Error, FromAddr, Header, fadt, madt, mcfg};
+use crate::traits::FromAddr;
+
+use super::{Error, Header, fadt, madt, mcfg};
 
 static mut ADDR: u64 = 0;
 
@@ -16,6 +18,7 @@ struct XSDT {
 
     entries: [u64; 0],
 }
+impl FromAddr for XSDT {}
 impl XSDT {
     fn init(&self) -> Result<(), Error> {
         self.header.init(*b"XSDT")?;
