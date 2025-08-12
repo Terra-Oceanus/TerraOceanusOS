@@ -4,7 +4,6 @@ pub enum Error {
     InvalidAddress,
     InvalidChecksum,
     InvalidLength,
-    InvalidReserved,
     InvalidRevision,
     InvalidSignature,
 }
@@ -20,7 +19,6 @@ impl crate::Output for Error {
             Error::InvalidAddress => "Invalid Address",
             Error::InvalidChecksum => "Invalid Checksum",
             Error::InvalidLength => "Invalid Length",
-            Error::InvalidReserved => "Invalid Reserved",
             Error::InvalidRevision => "Invalid Revision",
             Error::InvalidSignature => "Invalid Signature",
         }

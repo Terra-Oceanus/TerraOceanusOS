@@ -22,9 +22,6 @@ impl Type1 {
         if self.header.length as usize != size_of::<Self>() {
             return Err(Error::InvalidLength.into());
         }
-        if self.reserved != 0 {
-            return Err(Error::InvalidReserved.into());
-        }
         let addr = self.io_apic_address;
         let base = self.global_system_interrupt_base;
         ioapic::append(addr, base)?;
