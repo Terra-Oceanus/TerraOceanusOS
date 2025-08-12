@@ -20,12 +20,12 @@ struct Type0 {
 
     p_capabilities: u8,
 
-    reserved: [u8; 7],
+    reserved0: [u8; 7],
 
     interrupt_line: u8,
     interrupt_pin: u8,
-    min_grant: u8,
-    max_latency: u8,
+
+    reserved1: u16,
 }
 impl FromAddr for Type0 {}
 impl Type0 {

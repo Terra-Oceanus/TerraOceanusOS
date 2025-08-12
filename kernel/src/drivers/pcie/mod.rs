@@ -17,25 +17,23 @@ pub struct Header {
     /// - Bit 0: I/O Space (R/W)
     /// - Bit 1: Memory Space (R/W)
     /// - Bit 2: Bus Master (R/W)
-    /// - Bit 3: Special Cycles (RO)
-    /// - Bit 4: Memory Write and Invalidate Enable (RO)
-    /// - Bit 5: VGA Palette Snoop (RO)
+    /// - Bits 3 ..= 5: 0
     /// - Bit 6: Parity Error Response (R/W)
-    /// - Bit 7: Reserved (RO)
+    /// - Bit 7: 0
     /// - Bit 8: SERR# Enable (R/W)
-    /// - Bit 9: Fast Back-to-Back Enable (RO)
+    /// - Bit 9: 0
     /// - Bit 10: Interrupt Disable (R/W)
     /// - Bits 11 ..= 15: Reserved
     command: u16,
 
     /// - Bits 0 ..= 2: Reserved
     /// - Bit 3: Interrupt Status (RO)
-    /// - Bit 4: Capabilities List (RO)
-    /// - Bit 5: 66 MHz Capable (RO)
+    /// - Bit 4: 1
+    /// - Bit 5: 0
     /// - Bit 6: Reserved
-    /// - Bit 7: Fast Back-to-Back Capable	 (RO)
+    /// - Bit 7: 0
     /// - Bit 8: Master Data Parity Error (R/W1C)
-    /// - Bits 9 ..= 10: DEVSEL Timing (RO)
+    /// - Bits 9 ..= 10: 0
     /// - Bit 11: Signaled Target Abort (R/W1C)
     /// - Bit 12: Received Target Abort (R/W1C)
     /// - Bit 13: Received Master Abort (R/W1C)
@@ -45,15 +43,12 @@ pub struct Header {
 
     revision_id: u8,
 
-    /// Programming Interface
-    prog_if: u8,
+    programming_interface: u8,
 
     subclass: u8,
     class: u8,
 
-    cache_line_size: u8,
-
-    latency_timer: u8,
+    reserved: u16,
 
     /// - Bits 0 ..= 6: Header Type
     /// - Bit 7: MF

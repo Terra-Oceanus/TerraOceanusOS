@@ -36,7 +36,7 @@ struct MCFG {
 }
 impl FromAddr for MCFG {}
 impl MCFG {
-    fn init(&self) -> Result<(), Error> {
+    fn init(&self) -> Result<(), crate::Error> {
         self.header.init(*SIGNATURE)?;
         for structure in unsafe {
             slice::from_raw_parts(
@@ -53,14 +53,16 @@ impl MCFG {
                     if !device_header.is_present() {
                         continue;
                     }
-                    if !device_header.is_multi_function() {
-                        continue;
-                    }
-                    for function in 1..8 {
+                    for function in 0..(if device_header.is_multi_function() {
+                        8
+                    } else {
+                        1
+                    }) {
                         let function_header = pcie::Header::get_ref(device_addr + (function << 12));
                         if !function_header.is_present() {
                             continue;
                         }
+                        function_header.handle()?;
                     }
                 }
             }
@@ -69,10 +71,10 @@ impl MCFG {
     }
 }
 
-pub fn init() -> Result<(), Error> {
+pub fn init() -> Result<(), crate::Error> {
     unsafe {
         if ADDR == 0 {
-            return Err(Error::InvalidAddress);
+            return Err(Error::InvalidAddress.into());
         }
         MCFG::get_ref(ADDR).init()
     }
