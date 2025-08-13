@@ -2,6 +2,10 @@
 
 use core::ptr::read_volatile;
 
+mod error;
+
+pub use error::Error;
+
 static mut ADDR: u64 = 0;
 
 pub fn set_config(addr: u64) {
@@ -289,11 +293,15 @@ enum Register {
     PMRMSCU = 0xE18,
 }
 impl Register {
-    fn read(self) -> u64 {
-        if matches!(
+    fn is_u64_register(&self) -> bool {
+        matches!(
             self,
             Register::CAP | Register::ASQ | Register::ACQ | Register::BPMBL | Register::CMBMSC
-        ) {
+        )
+    }
+
+    fn read(self) -> u64 {
+        if self.is_u64_register() {
             unsafe { read_volatile((ADDR + self as u64) as *const u64) }
         } else {
             unsafe { read_volatile((ADDR + self as u64) as *const u32) as u64 }
@@ -301,4 +309,9 @@ impl Register {
     }
 }
 
-pub fn init() {}
+pub fn init() -> Result<(), Error> {
+    if unsafe { ADDR == 0 } {
+        return Err(Error::InvalidAddress);
+    }
+    Ok(())
+}
