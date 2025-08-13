@@ -271,31 +271,30 @@ enum Local {
     /// - Bits 4 ..= 31: Reserved
     TDCR = 0x3E0,
 }
+impl Local {
+    fn read(self) -> u32 {
+        unsafe { read_volatile((ADDR + self as u32) as *const u32) }
+    }
 
-#[inline(always)]
-fn read(reg: Local) -> u32 {
-    unsafe { read_volatile((ADDR + reg as u32) as *const u32) }
-}
-
-#[inline(always)]
-fn write(reg: Local, value: u32) {
-    unsafe { write_volatile((ADDR + reg as u32) as *mut u32, value) }
+    fn write(self, value: u32) {
+        unsafe { write_volatile((ADDR + self as u32) as *mut u32, value) }
+    }
 }
 
 pub fn init(addr: u32) {
     unsafe { ADDR = addr };
-    let mut sivr = read(Local::SIVR);
+    let mut sivr = Local::SIVR.read();
     if (sivr >> 8) & 1 == 0 {
         sivr |= 1 << 8;
-        write(Local::SIVR, sivr);
+        Local::SIVR.write(sivr);
     };
     timer::init();
 }
 
 pub fn id() -> u32 {
-    read(Local::ID)
+    Local::ID.read()
 }
 
 pub fn eoi() {
-    write(Local::EOI, 0);
+    Local::EOI.write(0);
 }
