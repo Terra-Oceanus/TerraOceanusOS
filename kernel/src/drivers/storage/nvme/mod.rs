@@ -1,9 +1,15 @@
 //! Non-Volatile Memory Express
 
-use crate::traits::FromAddr;
+use core::ptr::read_volatile;
 
-#[repr(C)]
-struct Registers {
+static mut ADDR: u64 = 0;
+
+pub fn set_config(addr: u64) {
+    unsafe { ADDR = addr }
+}
+
+#[repr(u16)]
+enum Register {
     /// Controller Capabilities
     /// - Bits 0 ..= 15: MQES for Maximum Queue Entries Supported (RO)
     /// - Bit 16: CQR for Contiguous Queues Required (RO)
@@ -35,21 +41,21 @@ struct Registers {
     ///   - Bit 1: CRIMS for Controller Ready Independent of Media Support
     /// - Bit 61: NSSES for NVM Subsystem Shutdown Enhancements Supported (RO)
     /// - Bits 62 ..= 63: Reserved
-    cap: u64,
+    CAP = 0x0,
 
     /// Version
     /// - Bits 0 ..= 7: TER for Tertiary Version
     /// - Bits 8 ..= 15: MNR for Minor Version
     /// - Bits 16 ..= 32: MJR for Major Version
-    vs: u32,
+    VS = 0x8,
 
     /// Interrupt Mask Set
     /// - Bits 0 ..= 31: IVMS for Interrupt Vector Mask Set
-    intms: u32,
+    INTMS = 0xC,
 
     /// Interrupt Mask Clear
     /// - Bits 0 ..= 31: IVMC for Interrupt Vector Mask Clear
-    intmc: u32,
+    INTMC = 0x10,
 
     /// Controller Configuration
     /// - Bit 0: EN for Enable (R/W)
@@ -80,9 +86,7 @@ struct Registers {
     /// - Bits 20 ..= 23: IOCQES for I/O Completion Queue Entry Size (R/W if I/O queues supported)
     /// - Bit 24: CRIME for Controller Ready Independent of Media Enable
     /// - Bits 25 ..= 31: Reserved
-    cc: u32,
-
-    reserved0: u32,
+    CC = 0x14,
 
     /// Controller Status
     /// - Bit 0: RDY for Ready (RO)
@@ -96,28 +100,28 @@ struct Registers {
     /// - Bit 5: PP for Processing Paused (RO)
     /// - Bit 6: ST for Shutdown Type (RO)
     /// - Bit 7 ..= 31: Reserved
-    csts: u32,
+    CSTS = 0x1C,
 
     /// NVM Subsystem Reset
     /// - Bits 0 ..= 31: NSSRC for NVM Subsystem Reset Control
-    nssr: u32,
+    NSSR = 0x20,
 
     /// Admin Queue Attributes
     /// - Bits 0 ..= 11: ASQS for Admin Submission Queue Size (R/W)
     /// - Bits 12 ..= 15: Reserved
     /// - Bits 16 ..= 27: ACQS for Admin Completion Queue Size (R/W)
     /// - Bits 28 ..= 31: Reserved
-    aqa: u32,
+    AQA = 0x24,
 
     /// Admin Submission Queue
     /// - Bits 0 ..= 11: Reserved
     /// - Bits 12 ..= 63: ASQB for Admin Submission Queue Base (R/W)
-    asq: u64,
+    ASQ = 0x28,
 
     /// Admin Completion Queue
     /// - Bits 0 ..= 11: Reserved
     /// - Bits 12 ..= 63: ACQB for Admin Completion Queue Base (R/W)
-    acq: u64,
+    ACQ = 0x30,
 
     /// Controller Memory Buffer Location
     /// - Bits 0 ..= 2: BIR for Base Indicator Register (RO)
@@ -129,7 +133,7 @@ struct Registers {
     /// - Bit 8: CQDA for CMB Queue Dword Alignment (RO)
     /// - Bits 9 ..= 11: Reserved
     /// - Bits 12 ..= 31: OFST for Offset (RO)
-    cmbloc: u32,
+    CMBLOC = 0x38,
 
     /// Controller Memory Buffer Size
     /// - Bit 0: SQS for Submission Queue Support (RO)
@@ -148,7 +152,7 @@ struct Registers {
     ///   - 0x6: 64 GiB
     ///   - 0x7 ..= 0xF: Reserved
     /// - Bits 12 ..= 31: SZ for Size (RO)
-    cmbsz: u32,
+    CMBSZ = 0x3C,
 
     /// Boot Partition Information
     /// - Bits 0 ..= 14: BPSZ for Boot Partition Size (RO)
@@ -160,31 +164,31 @@ struct Registers {
     ///   - 0b11: Error completing Boot Partition read
     /// - Bits 26 ..= 30: Reserved
     /// - Bit 31: ABPID for Active Boot Partition ID (RO)
-    bpinfo: u32,
+    BPINFO = 0x40,
 
     /// Boot Partition Read Select
     /// - Bits 0 ..= 9: BPRSZ for Boot Partition Read Size (R/W)
     /// - Bits 10 ..= 29: BPROF for Boot Partition Read Offset (R/W)
     /// - Bit 30: Reserved
     /// - Bit 31: BPID for Boot Partition Identifer (R/W)
-    bprsel: u32,
+    BPRSEL = 0x44,
 
     /// Boot Partition Memory Buffer Location
     /// - Bits 0 ..= 11: Reserved
     /// - Bits 12 ..= 63: BMBBA for Boot Partition Memory Buffer Base Address (R/W)
-    bpmbl: u64,
+    BPMBL = 0x48,
 
     /// Controller Memory Buffer Memory Space Control
     /// - Bit 0: CRE for Capabilities Registers Enabled (R/W)
     /// - Bit 1: CMSE for Controller Memory Space Enable (R/W)
     /// - Bits 2 ..= 11: Reserved
     /// - Bits 12 ..= 63: CBA for Controller Base Address (R/W)
-    cmbmsc: u64,
+    CMBMSC = 0x50,
 
     /// Controller Memory Buffer Status
     /// - Bit 0: CBAI for Controller Base Address Invalid (RO)
     /// - Bits 1 ..= 31: Reserved
-    cmbsts: u32,
+    CMBSTS = 0x58,
 
     /// Controller Memory Buffer Elasticity Buffer Size
     /// - Bits 0 ..= 3: CMBSZU for CMB Elasticity Buffer Size Units (RO)
@@ -196,7 +200,7 @@ struct Registers {
     /// - Bit 4: CMBRBB for CMB Read Bypass Behavior (RO)
     /// - Bits 5 ..= 7: Reserved
     /// - Bits 8 ..= 31: CMBWBZ for CMB Elasticity Buffer Size Base (RO)
-    cmbebs: u32,
+    CMBEBS = 0x5C,
 
     /// Controller Memory Buffer Sustained Write Throughput
     /// - Bits 0 ..= 3: CMBSWTU for CMB Sustained Write Throughput Units (RO)
@@ -207,18 +211,16 @@ struct Registers {
     ///   - 0x4 ..= 0xF: Reserved
     /// - Bits 4 ..= 7: Reserved
     /// - Bits 8 ..= 31: CMBSWTV for CMB Sustained Write Throughput (RO)
-    cmbswtp: u32,
+    CMBSWTP = 0x60,
 
     /// NVM Subsystem Shutdown
     /// - Bits 0 ..= 31: NSSC for NVM Subsystem Shutdown Control
-    nssd: u32,
+    NSSD = 0x64,
 
     /// Controller Ready Timeouts
     /// - Bits 0 ..= 15: CRWMT for Controller Ready With Media Timeout (RO)
     /// - Bits 16 ..= 31: CRIMT for Controller Ready Independent of Media Timeout (RO)
-    crto: u32,
-
-    reserved1: [u8; 0xE00 - 0x6C],
+    CRTO = 0x68,
 
     /// Persistent Memory Capabilities
     /// - Bits 0 ..= 2: Reserved
@@ -237,12 +239,12 @@ struct Registers {
     /// - Bits 16 ..= 23: PMRTO for Persistent Memory Region Timeout (RO)
     /// - Bit 24: CMSS for Controller Memory Space Supported (RO)
     /// - Bits 25 ..= 31: Reserved
-    pmrcap: u32,
+    PMRCAP = 0xE00,
 
     /// Persistent Memory Region Control
     /// - Bit 0: EN for Enable (R/W)
     /// - Bits 1 ..= 31: Reserved
-    pmrctl: u32,
+    PMRCTL = 0xE04,
 
     /// Persistent Memory Region Status
     /// - Bits 0 ..= 7: ERR for Error (RO)
@@ -255,7 +257,7 @@ struct Registers {
     ///   - 0b100 ..= 0b111: Reserved
     /// - Bit 12: CBAI for Controller Base Address Invalid (RO)
     /// - Bits 13 ..= 31: Reserved
-    pmrsts: u32,
+    PMRSTS = 0xE08,
 
     /// Persistent Memory Region Elasticity Buffer Size
     /// - Bits 0 ..= 3: PMRSZU for PMR Elasticity Buffer Size Units (RO)
@@ -267,32 +269,36 @@ struct Registers {
     /// - Bit 4: PMRRBB for PMR Read Bypass Behavior (RO)
     /// - Bits 5 ..= 7: Reserved
     /// - Bits 8 ..= 31: PMRWBZ for PMR Elasticity Buffer Size Base (RO)
-    pmrebs: u32,
+    PMREBS = 0xE0C,
 
     /// Persistent Memory Region Sustained Write Throughput
     /// - Bits 0 ..= 3: PMRSWTU for PMR Sustained Write Throughput Units (RO)
     /// - Bits 4 ..= 7: Reserved
     /// - Bits 8 ..= 31: PMRSWTV for PMR Sustained Write Throughput (RO)
-    pmrswtp: u32,
+    PMRSWTP = 0xE10,
 
     /// Persistent Memory Region Controller Memory Space Control Lower
     /// - Bit 0: Reserved
     /// - Bit 1: CMSE for Controller Memory Space Enable (R/W)
     /// - Bits 2 ..= 11: Reserved
     /// - Bits 12 ..= 31: CBA for Controller Base Address (R/W)
-    pmrmscl: u32,
+    PMRMSCL = 0xE14,
 
     /// Persistent Memory Region Controller Memory Space Control Upper
     /// - Bits 0 ..= 31: CBA for Controller Base Address (R/W)
-    pmrmscu: u32,
+    PMRMSCU = 0xE18,
+}
+impl Register {
+    fn read(self) -> u64 {
+        if matches!(
+            self,
+            Register::CAP | Register::ASQ | Register::ACQ | Register::BPMBL | Register::CMBMSC
+        ) {
+            unsafe { read_volatile((ADDR + self as u64) as *const u64) }
+        } else {
+            unsafe { read_volatile((ADDR + self as u64) as *const u32) as u64 }
+        }
+    }
+}
 
-    reserved2: [u8; 0x1000 - 0xE1C],
-}
-impl FromAddr for Registers {}
-impl Registers {
-    fn init(&self) {}
-}
-
-pub fn init(addr: u64) {
-    Registers::get_ref(addr).init();
-}
+pub fn init() {}
