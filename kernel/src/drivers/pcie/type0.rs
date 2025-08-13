@@ -2,7 +2,7 @@
 
 use crate::traits::FromAddr;
 
-use super::{Error, Header};
+use super::{super::storage::nvme, Header};
 
 #[repr(C, packed)]
 struct Type0 {
@@ -76,6 +76,6 @@ impl Type0 {
     }
 }
 
-pub fn handle(addr: u64) -> Result<(), Error> {
-    Type0::get_ref(addr).handle()
+pub fn handle(addr: u64) {
+    Type0::get_ref(addr).handle();
 }

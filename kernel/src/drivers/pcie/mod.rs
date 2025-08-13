@@ -77,7 +77,7 @@ impl Header {
 
     pub fn handle(&self) -> Result<(), Error> {
         match self.header_type & 0b01111111 {
-            0 => type0::handle(self as *const Self as u64),
+            0 => Ok(type0::handle(self as *const Self as u64)),
             1 => Ok(()),
             _ => Err(Error::InvalidHeaderType),
         }
