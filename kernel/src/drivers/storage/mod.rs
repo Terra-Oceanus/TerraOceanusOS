@@ -1,7 +1,11 @@
 //! Storage
 
+mod error;
 pub mod nvme;
 
-pub fn init() {
-    nvme::init();
+pub use error::Error;
+
+pub fn init() -> Result<(), Error> {
+    nvme::init()?;
+    Ok(())
 }
