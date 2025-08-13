@@ -1,3 +1,3 @@
 //! Storage
 
-mod nvme;
+pub mod nvme;

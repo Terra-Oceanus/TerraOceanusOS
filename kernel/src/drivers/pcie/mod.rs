@@ -52,8 +52,8 @@ pub struct Header {
 
     /// - Bits 0 ..= 6: Header Type
     /// - Bit 7: MF
-    /// - - 0: Single Function
-    /// - - 1: Multiple Functions
+    ///   - 0: Single Function
+    ///   - 1: Multiple Functions
     header_type: u8,
 
     built_in_self_test: u8,
@@ -70,7 +70,7 @@ impl Header {
 
     pub fn handle(&self) -> Result<(), Error> {
         match self.header_type & 0b01111111 {
-            0 => type0::handle(self as *const Self as u64),
+            0 => Ok(type0::handle(self as *const Self as u64)),
             1 => Ok(()),
             2 => Ok(()),
             _ => Err(Error::InvalidHeaderType),
