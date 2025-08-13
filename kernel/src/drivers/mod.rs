@@ -7,5 +7,7 @@ mod storage;
 pub use error::Error;
 
 pub fn init() -> Result<(), crate::Error> {
-    pcie::init()
+    pcie::init()?;
+    storage::init();
+    Ok(())
 }

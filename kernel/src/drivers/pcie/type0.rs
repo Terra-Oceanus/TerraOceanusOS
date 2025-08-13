@@ -49,7 +49,7 @@ impl Type0 {
                 0x08 => match self.header.programming_interface {
                     // NVM Express
                     0x02 => {
-                        nvme::init(
+                        nvme::set_config(
                             ((self.bar[1] as u64) << 32) | (self.bar[0] & 0xFFFFFFF0) as u64,
                         );
                     }

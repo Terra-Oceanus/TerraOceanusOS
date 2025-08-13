@@ -79,6 +79,5 @@ impl Header {
 }
 
 pub fn init() -> Result<(), crate::Error> {
-    mcfg::init()?;
-    Ok(())
+    mcfg::init()
 }
