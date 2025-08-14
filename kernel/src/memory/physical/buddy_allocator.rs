@@ -106,7 +106,7 @@ impl BuddyAllocator {
         Ok(())
     }
 
-    pub fn allocate(size: u64) -> Result<usize, Error> {
+    pub fn allocate(size: u64) -> Result<u64, Error> {
         let pages = (size + PAGE_SIZE - 1) / PAGE_SIZE;
         if pages == 0 || pages > (1 << unsafe { BUDDY_ALLOCATOR.max_order }) {
             return Err(Error::InvalidAllocationSize);
@@ -138,7 +138,7 @@ impl BuddyAllocator {
                     BUDDY_ALLOCATOR.page_info[head].order = order as u8;
                     BUDDY_ALLOCATOR.page_info[head].next = 0;
 
-                    return Ok(head);
+                    return Ok(head as u64 * PAGE_SIZE);
                 }
                 current_order += 1;
             }
@@ -146,7 +146,8 @@ impl BuddyAllocator {
         Err(Error::OutOfMemory)
     }
 
-    pub fn deallocate(index: usize) -> Result<(), Error> {
+    pub fn deallocate(addr: u64) -> Result<(), Error> {
+        let index = (addr / PAGE_SIZE) as usize;
         unsafe {
             if index >= BUDDY_ALLOCATOR.page_count as usize {
                 return Err(Error::InvalidIndex);

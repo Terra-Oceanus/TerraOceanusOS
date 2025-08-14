@@ -94,10 +94,10 @@ pub fn init(entry: usize, descriptor_size: usize, descriptor_count: usize) -> Re
     Ok(())
 }
 
-pub fn allocate(size: u64) -> Result<usize, Error> {
+pub fn allocate(size: u64) -> Result<u64, Error> {
     BuddyAllocator::allocate(size)
 }
 
-pub fn deallocate(index: usize) -> Result<(), Error> {
-    BuddyAllocator::deallocate(index)
+pub fn deallocate(addr: u64) -> Result<(), Error> {
+    BuddyAllocator::deallocate(addr)
 }
