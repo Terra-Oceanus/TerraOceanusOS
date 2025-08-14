@@ -26,9 +26,6 @@ impl Type2 {
         if self.header.length as usize != size_of::<Self>() {
             return Err(Error::InvalidLength.into());
         }
-        if self.flags & !0b1111 != 0 {
-            return Err(Error::InvalidReserved.into());
-        }
         ioapic::handle_override(
             self.source,
             self.global_system_interrupt,

@@ -26,9 +26,6 @@ impl Type4 {
         if self.header.length as usize != size_of::<Self>() {
             return Err(Error::InvalidLength);
         }
-        if self.flags & !0b1111 != 0 {
-            return Err(Error::InvalidReserved);
-        }
         Ok(())
     }
 }

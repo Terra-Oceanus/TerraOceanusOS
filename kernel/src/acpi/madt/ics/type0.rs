@@ -23,17 +23,6 @@ impl Type0 {
         if self.header.length as usize != size_of::<Self>() {
             return Err(Error::InvalidLength);
         }
-        if self.flags & 1 == 1 {
-            if self.flags & !1 != 0 {
-                return Err(Error::InvalidReserved);
-            }
-        } else {
-            if self.flags >> 1 & 1 == 1 {
-                if self.flags & !0b11 != 0 {
-                    return Err(Error::InvalidReserved);
-                }
-            }
-        }
         Ok(())
     }
 }
