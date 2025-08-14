@@ -62,9 +62,6 @@ impl RSDP {
         if !self.checksum(self.length as usize) {
             return Err(Error::InvalidChecksum);
         }
-        if self.reserved.iter().any(|&b| b != 0) {
-            return Err(Error::InvalidReserved);
-        }
         Ok(self.xsdt_address)
     }
 }

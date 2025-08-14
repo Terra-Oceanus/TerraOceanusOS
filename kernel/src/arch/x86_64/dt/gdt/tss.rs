@@ -18,8 +18,7 @@ pub struct TSS {
 
     ist: [u64; 7],
 
-    reserved2: u64,
-    reserved3: u16,
+    reserved2: [u16; 5],
 
     io_map_base_address: u16,
 }
@@ -30,8 +29,7 @@ impl TSS {
             rsp: [0; 3],
             reserved1: 0,
             ist: [0; 7],
-            reserved2: 0,
-            reserved3: 0,
+            reserved2: [0; 5],
             io_map_base_address: 0,
         }
     }
