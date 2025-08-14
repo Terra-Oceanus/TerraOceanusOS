@@ -1,7 +1,7 @@
 //! Memory
 
 mod error;
-mod physical;
+pub mod physical;
 
 pub use error::Error;
 

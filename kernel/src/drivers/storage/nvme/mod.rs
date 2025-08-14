@@ -1,6 +1,11 @@
 //! Non-Volatile Memory Express
 
-use core::ptr::read_volatile;
+use core::{
+    hint::spin_loop,
+    ptr::{read_volatile, write_volatile},
+};
+
+use crate::memory::physical::allocate;
 
 mod error;
 
@@ -11,6 +16,9 @@ static mut ADDR: u64 = 0;
 pub fn set_config(addr: u64) {
     unsafe { ADDR = addr }
 }
+
+static mut ASQ_ADDR: u64 = 0;
+static mut ACQ_ADDR: u64 = 0;
 
 #[repr(u16)]
 enum Register {
@@ -112,8 +120,10 @@ enum Register {
 
     /// Admin Queue Attributes
     /// - Bits 0 ..= 11: ASQS for Admin Submission Queue Size (R/W)
+    ///   - Valid range: 1 ..= 4095
     /// - Bits 12 ..= 15: Reserved
     /// - Bits 16 ..= 27: ACQS for Admin Completion Queue Size (R/W)
+    ///   - Valid range: 1 ..= 4095
     /// - Bits 28 ..= 31: Reserved
     AQA = 0x24,
 
@@ -300,18 +310,83 @@ impl Register {
         )
     }
 
+    fn addr(self) -> u64 {
+        unsafe { ADDR + self as u64 }
+    }
+
     fn read(self) -> u64 {
         if self.is_u64_register() {
-            unsafe { read_volatile((ADDR + self as u64) as *const u64) }
+            unsafe { read_volatile(self.addr() as *const u64) }
         } else {
-            unsafe { read_volatile((ADDR + self as u64) as *const u32) as u64 }
+            unsafe { read_volatile(self.addr() as *const u32) as u64 }
+        }
+    }
+
+    fn write(self, value: u64) {
+        if self.is_u64_register() {
+            unsafe {
+                write_volatile(self.addr() as *mut u64, value);
+            }
+        } else {
+            unsafe {
+                write_volatile(self.addr() as *mut u32, (value & 0xFFFFFFFF) as u32);
+            }
         }
     }
 }
 
-pub fn init() -> Result<(), Error> {
+pub fn init() -> Result<(), crate::Error> {
     if unsafe { ADDR == 0 } {
-        return Err(Error::InvalidAddress);
+        return Err(Error::InvalidAddress.into());
     }
+
+    Register::CC.write(0);
+    while (Register::CSTS.read() & 0b1) == 1 {
+        spin_loop();
+    }
+
+    const SUBMISSION_QUEUE_ENTRY_SIZE: u64 = 64;
+    const COMPLETION_QUEUE_ENTRY_SIZE: u64 = 16;
+
+    const ADMIN_QUEUE_ENTRY_COUNT: u64 = 32;
+    Register::AQA.write(((ADMIN_QUEUE_ENTRY_COUNT - 1) << 16) | (ADMIN_QUEUE_ENTRY_COUNT - 1));
+    unsafe {
+        ASQ_ADDR = allocate(ADMIN_QUEUE_ENTRY_COUNT * SUBMISSION_QUEUE_ENTRY_SIZE)?;
+        Register::ASQ.write(ASQ_ADDR);
+
+        ACQ_ADDR = allocate(ADMIN_QUEUE_ENTRY_COUNT * COMPLETION_QUEUE_ENTRY_SIZE)?;
+        Register::ACQ.write(ACQ_ADDR);
+    }
+
+    let cap = Register::CAP.read();
+    if (cap >> 48) & 0xF != 0 {
+        return Err(Error::InvalidRegisterValue.into());
+    }
+
+    Register::CC.write(
+        1 | ({
+            let css = ((cap >> 37) & 0xFF) as u8;
+            if css & 0b1000_0000 != 0 {
+                0b111
+            } else if css & 0b100_0000 != 0 {
+                0b110
+            } else if css & 0b1 != 0 {
+                0b000
+            } else {
+                return Err(Error::InvalidRegisterValue.into());
+            }
+        } << 4)
+            | ({
+                let ams = ((cap >> 17) & 0b11) as u8;
+                if ams & 0b1 != 0 {
+                    0b001
+                } else if ams & 0b10 != 0 {
+                    0b111
+                } else {
+                    0b000
+                }
+            } << 11),
+    );
+
     Ok(())
 }
