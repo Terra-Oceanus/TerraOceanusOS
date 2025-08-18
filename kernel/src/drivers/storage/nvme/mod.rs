@@ -8,6 +8,7 @@ use core::{
 use crate::memory::physical::allocate;
 
 mod error;
+mod queue;
 
 pub use error::Error;
 
@@ -301,6 +302,10 @@ enum Register {
     /// Persistent Memory Region Controller Memory Space Control Upper
     /// - Bits 0 ..= 31: CBA for Controller Base Address (R/W)
     PMRMSCU = 0xE18,
+
+    /// - Submission: Base + (2 * X) * (1 << (2 + CAP.DSTRD))
+    /// - Completion: Base + (2 * X + 1) * (1 << (2 + CAP.DSTRD))
+    DOORBELL = 0x1000,
 }
 impl Register {
     fn is_u64_register(&self) -> bool {
@@ -357,13 +362,8 @@ pub fn init() -> Result<(), crate::Error> {
         ACQ_ADDR = allocate(ADMIN_QUEUE_ENTRY_COUNT * COMPLETION_QUEUE_ENTRY_SIZE)?;
         Register::ACQ.write(ACQ_ADDR);
     }
-
-    let cap = Register::CAP.read();
-    if (cap >> 48) & 0xF != 0 {
-        return Err(Error::InvalidRegisterValue.into());
-    }
-
-    Register::CC.write(
+    Register::CC.write({
+        let cap = Register::CAP.read();
         1 | ({
             let css = ((cap >> 37) & 0xFF) as u8;
             if css & 0b1000_0000 != 0 {
@@ -377,6 +377,13 @@ pub fn init() -> Result<(), crate::Error> {
             }
         } << 4)
             | ({
+                if (((cap >> 48) & 0xF)..=((cap >> 52) & 0xF)).contains(&0) {
+                    0x0
+                } else {
+                    return Err(Error::InvalidRegisterValue.into());
+                }
+            } << 7)
+            | ({
                 let ams = ((cap >> 17) & 0b11) as u8;
                 if ams & 0b1 != 0 {
                     0b001
@@ -385,8 +392,11 @@ pub fn init() -> Result<(), crate::Error> {
                 } else {
                     0b000
                 }
-            } << 11),
-    );
+            } << 11)
+    });
+    while (Register::CSTS.read() & 0b1) == 0 {
+        spin_loop();
+    }
 
     Ok(())
 }
