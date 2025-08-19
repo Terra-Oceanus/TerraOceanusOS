@@ -160,7 +160,7 @@ fn wait_for_key_press() -> Result<(), Status> {
             Event::from_ptr((&*stdin).wait_for_key).ok_or(Status::LOAD_ERROR)?
         ])
         .map_err(|e| e.status())?;
-        let _status = ((&*stdin).read_key_stroke)(stdin, *ptr::null());
+        let _status = ((&*stdin).read_key_stroke)(stdin, ptr::null_mut());
     }
     Ok(())
 }
