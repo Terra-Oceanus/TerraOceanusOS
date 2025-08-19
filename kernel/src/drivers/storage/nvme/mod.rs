@@ -393,5 +393,11 @@ pub fn init() -> Result<(), crate::Error> {
         spin_loop();
     }
 
+    command::admin::submit(
+        command::Submission::null()
+            .to_identify()?
+            .identify_to_controller(),
+    );
+
     Ok(())
 }

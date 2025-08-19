@@ -35,10 +35,10 @@ impl Submission {
         Ok(self.addr)
     }
 
-    fn enqueue(&mut self, cmd: Command) {
+    pub fn enqueue(&mut self, cmd: &mut Command) {
         unsafe {
             copy_nonoverlapping(
-                &cmd as *const Command as *const u8,
+                cmd as *const Command as *const u8,
                 (self.addr as *mut u8).add((self.tail % self.size) as usize * ENTRY_SIZE),
                 ENTRY_SIZE,
             );
