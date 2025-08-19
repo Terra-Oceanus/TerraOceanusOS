@@ -5,8 +5,7 @@ use core::{
     ptr::{read_volatile, write_volatile},
 };
 
-use crate::memory::physical::allocate;
-
+mod command;
 mod error;
 mod queue;
 
@@ -19,8 +18,6 @@ pub fn set_config(addr: u64) {
 }
 
 static mut DSTRD: u64 = 0;
-static mut ASQ_ADDR: u64 = 0;
-static mut ACQ_ADDR: u64 = 0;
 
 #[repr(u16)]
 enum Register {
@@ -353,17 +350,13 @@ pub fn init() -> Result<(), crate::Error> {
         spin_loop();
     }
 
-    const COMPLETION_QUEUE_ENTRY_SIZE: u64 = 16;
+    let (asq, acq) = command::admin::init()?;
 
-    const ADMIN_QUEUE_ENTRY_COUNT: u64 = 32;
-    Register::AQA.write(((ADMIN_QUEUE_ENTRY_COUNT - 1) << 16) | (ADMIN_QUEUE_ENTRY_COUNT - 1));
-    unsafe {
-        ASQ_ADDR = allocate(ADMIN_QUEUE_ENTRY_COUNT * queue::submission::ENTRY_SIZE as u64)?;
-        Register::ASQ.write(ASQ_ADDR);
-
-        ACQ_ADDR = allocate(ADMIN_QUEUE_ENTRY_COUNT * COMPLETION_QUEUE_ENTRY_SIZE)?;
-        Register::ACQ.write(ACQ_ADDR);
-    }
+    Register::AQA.write(
+        ((command::admin::ENTRY_COUNT as u64 - 1) << 16) | (command::admin::ENTRY_COUNT as u64 - 1),
+    );
+    Register::ASQ.write(asq);
+    Register::ACQ.write(acq);
     Register::CC.write({
         let cap = Register::CAP.read();
         1 | ({

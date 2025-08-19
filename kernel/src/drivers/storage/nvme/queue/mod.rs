@@ -1,12 +1,40 @@
 //! Queue
 
+pub mod completion;
 pub mod submission;
 
-struct Queue {
+use completion::Completion;
+use submission::Submission;
+
+static mut ID_COUNTER: u16 = 0;
+
+pub struct Queue {
     id: u16,
 
-    addr: u64,
-    size: u16,
+    pub submission: Submission,
+    pub completion: Completion,
+}
+impl Queue {
+    pub const fn null() -> Self {
+        Self {
+            id: 0,
+            submission: Submission::null(),
+            completion: Completion::null(),
+        }
+    }
 
-    doorbell: *mut u32,
+    pub fn init(
+        &mut self,
+        submission_size: u16,
+        completion_size: u16,
+    ) -> Result<(u64, u64), crate::Error> {
+        unsafe {
+            self.id = ID_COUNTER;
+            ID_COUNTER += 1;
+        };
+        Ok((
+            self.submission.init(self.id, submission_size)?,
+            self.completion.init(self.id, completion_size)?,
+        ))
+    }
 }
