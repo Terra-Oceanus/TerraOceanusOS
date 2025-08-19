@@ -2,11 +2,9 @@
 
 use core::ptr::{addr_of, read_unaligned};
 
-use crate::{
-    Error, Output, init_check, init_end, init_message, init_start, io::port, x86_64::apic::lapic,
-};
+use crate::{io::port, traits::FromAddr};
 
-use super::{FromAddr, Header};
+use super::{Error, Header};
 
 mod ics;
 
@@ -30,51 +28,37 @@ struct MADT {
 
     interrupt_controller_structures: [u8; 0],
 }
+impl FromAddr for MADT {}
 impl MADT {
-    fn init(&self) -> Result<(), Error> {
-        init_start!();
+    fn init(&self) -> Result<u32, crate::Error> {
         self.header.init(*SIGNATURE)?;
-        let structure_length = self.header.length as usize - size_of::<Self>();
-        init_message!(
-            true,
-            false,
-            "Local Interrupt Controller Address(",
-            self.local_interrupt_controller_address as u64,
-            ") detected..."
-        );
-        lapic::set_config(self.local_interrupt_controller_address);
-        init_message!(false, true, "recorded");
+
+        // Programmable Interrupt Controller
         if self.flags & 1 == 1 {
-            init_message!(true, false, "PIC detected...");
             port::out_byte(port::MASTER_PIC_DATA, 0xFF);
             port::out_byte(port::SLAVE_PIC_DATA, 0xFF);
-            init_message!(false, true, "disabled");
         }
 
-        let structures = addr_of!(self.interrupt_controller_structures) as *const u8;
         let mut offset = 0usize;
-        while offset < structure_length {
+        let structures = addr_of!(self.interrupt_controller_structures) as *const u8;
+        while offset < self.header.length as usize - size_of::<Self>() {
             unsafe {
-                let header = read_unaligned(structures.add(offset) as *const ics::Header);
-                init_message!(true, false, "Type", header.type_ as usize, ": ");
+                let entry = structures.add(offset);
+                let header = read_unaligned(entry as *const ics::Header);
                 match header.type_ {
-                    0 => ics::type0::handle(structures.add(offset) as u64)?,
-                    1 => ics::type1::handle(structures.add(offset) as u64)?,
-                    2 => ics::type2::handle(structures.add(offset) as u64)?,
-                    4 => ics::type4::handle(structures.add(offset) as u64)?,
-                    _ => init_message!(false, true, "Unprocessed"),
+                    0 => ics::type0::handle(entry as u64)?,
+                    1 => ics::type1::handle(entry as u64)?,
+                    2 => ics::type2::handle(entry as u64)?,
+                    4 => ics::type4::handle(entry as u64)?,
+                    _ => {}
                 }
                 offset += header.length as usize;
             }
         }
-        init_end!();
-        Ok(())
+        Ok(self.local_interrupt_controller_address)
     }
 }
 
-pub fn init() -> Result<(), Error> {
-    unsafe {
-        init_check!(ADDR);
-        MADT::get_ref(ADDR).init()
-    }
+pub fn init() -> Result<u32, crate::Error> {
+    unsafe { MADT::get_ref(ADDR).init() }
 }

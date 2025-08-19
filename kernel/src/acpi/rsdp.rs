@@ -1,12 +1,8 @@
 //! Root System Description Pointer
 
-use crate::{
-    Output,
-    error::{ACPI, Error},
-    init_check, init_end, init_message, init_start,
-};
+use crate::traits::FromAddr;
 
-use super::{Checksum, FromAddr, xsdt};
+use super::{Checksum, Error};
 
 static mut ADDR: u64 = 0;
 
@@ -23,19 +19,21 @@ struct RSDP1_0 {
     /// - 2: ACPI 2.0+
     revision: u8,
 
-    /// *Deprecated*
+    /// Deprecated
     rsdt_address: u32,
 }
+impl FromAddr for RSDP1_0 {}
+impl Checksum for RSDP1_0 {}
 impl RSDP1_0 {
     fn init(&self) -> Result<(), Error> {
         if self.signature != *b"RSD PTR " {
-            return Err(Error::ACPI(ACPI::InvalidSignature));
+            return Err(Error::InvalidSignature);
         }
         if !self.checksum(size_of::<Self>()) {
-            return Err(Error::ACPI(ACPI::InvalidChecksum));
+            return Err(Error::InvalidChecksum);
         }
         if self.revision != 2 {
-            return Err(Error::ACPI(ACPI::InvalidRevision));
+            return Err(Error::InvalidRevision);
         }
         Ok(())
     }
@@ -53,29 +51,25 @@ struct RSDP {
 
     reserved: [u8; 3],
 }
+impl FromAddr for RSDP {}
+impl Checksum for RSDP {}
 impl RSDP {
-    fn init(&self) -> Result<(), Error> {
-        init_start!();
+    fn init(&self) -> Result<u64, Error> {
         self.rsdp1_0.init()?;
         if self.length != size_of::<Self>() as u32 {
-            return Err(Error::ACPI(ACPI::InvalidLength));
+            return Err(Error::InvalidLength);
         }
         if !self.checksum(self.length as usize) {
-            return Err(Error::ACPI(ACPI::InvalidChecksum));
+            return Err(Error::InvalidChecksum);
         }
-        if self.reserved.iter().any(|&b| b != 0) {
-            return Err(Error::ACPI(ACPI::InvalidReserved));
-        }
-        init_message!(true, false, "Table XSDT detected...");
-        xsdt::set_config(self.xsdt_address);
-        init_message!(false, true, "recorded");
-        init_end!();
-        Ok(())
+        Ok(self.xsdt_address)
     }
 }
 
-pub fn init(addr: u64) -> Result<(), Error> {
+pub fn init(addr: u64) -> Result<u64, Error> {
+    if addr == 0 {
+        return Err(Error::InvalidAddress);
+    }
     unsafe { ADDR = addr };
-    init_check!(addr);
     RSDP::get_ref(addr).init()
 }

@@ -5,8 +5,6 @@ use core::{
     ptr::addr_of,
 };
 
-use crate::{Output, init_end, init_message, init_start};
-
 use super::{Descriptor, gdt};
 
 mod interrupts;
@@ -175,7 +173,6 @@ impl GateDescriptor {
 }
 
 pub fn init() {
-    init_start!();
     unsafe {
         IDT[Interrupt::DivideError as usize] =
             GateDescriptor::interrupt(interrupt!(divide_error) as u64);
@@ -218,14 +215,10 @@ pub fn init() {
             GateDescriptor::interrupt(interrupt!(control_protection_exception) as u64);
         IDT[Interrupt::Timer as usize] = GateDescriptor::interrupt(interrupt!(timer) as u64);
         IDT[Interrupt::Keyboard as usize] = GateDescriptor::interrupt(interrupt!(keyboard) as u64);
-    }
-    init_message!(true, false, "Loading IDT...");
-    unsafe {
+
         asm!(
             "lidt [{}]",
             in(reg) &Descriptor::new::<[GateDescriptor; 256]>(addr_of!(IDT) as u64),
         )
     };
-    init_message!(false, true, "finished");
-    init_end!();
 }

@@ -5,14 +5,15 @@ use core::{arch::asm, panic::PanicInfo};
 
 mod acpi;
 mod arch;
+mod drivers;
 mod error;
 mod io;
-mod macros;
 mod memory;
+mod traits;
 
 use arch::x86_64;
 use error::Error;
-use io::text::Output;
+use io::text::{Output, screen};
 
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
@@ -56,7 +57,7 @@ pub extern "C" fn _start() -> ! {
             lateout("r15") memory_descriptor_count,
         )
     };
-    init(
+    match init(
         frame_buffer_base,
         width,
         height,
@@ -65,10 +66,14 @@ pub extern "C" fn _start() -> ! {
         memory_map_entry,
         memory_descriptor_size,
         memory_descriptor_count,
-    )
-    .unwrap_or_else(|e| e.output());
+    ) {
+        Ok(_) => screen::clear(),
+        Err(e) => {
+            e.output();
+            loop {}
+        }
+    }
 
-    "Switching segment...".output();
     unsafe {
         asm!(
             "mov ss, ax",
@@ -82,15 +87,12 @@ pub extern "C" fn _start() -> ! {
             "push rax",
             "retfq",
             "9:",
+
+            "sti",
             in(reg) x86_64::gdt::SegmentSelector::KernelCode as u16,
             in("ax") x86_64::gdt::SegmentSelector::KernelData as u16,
         )
     };
-    "finished.\n".output();
-
-    "Setting Interrupt Flag...".output();
-    unsafe { asm!("sti") };
-    "finished.\n".output();
 
     loop {}
 }
@@ -118,6 +120,5 @@ fn init(
         memory_descriptor_size,
         memory_descriptor_count,
     )?;
-    init_end!();
-    Ok(())
+    drivers::init()
 }

@@ -5,8 +5,6 @@ pub mod type1;
 pub mod type2;
 pub mod type4;
 
-use super::FromAddr;
-
 #[repr(C, packed)]
 pub struct Header {
     pub type_: u8,

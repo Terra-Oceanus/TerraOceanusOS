@@ -2,25 +2,16 @@
 
 use core::slice::from_raw_parts;
 
-use crate::{
-    Output,
-    error::{ACPI, Error},
-    init_end, init_start,
-};
-
 mod dsdt;
+mod error;
 mod facs;
 mod fadt;
-mod madt;
+pub mod madt;
+pub mod mcfg;
 mod rsdp;
 mod xsdt;
 
-trait FromAddr: Sized {
-    fn get_ref(addr: u64) -> &'static Self {
-        unsafe { &*(addr as *const Self) }
-    }
-}
-impl<T> FromAddr for T {}
+pub use error::Error;
 
 trait Checksum {
     fn checksum(&self, size: usize) -> bool {
@@ -33,18 +24,11 @@ trait Checksum {
         }
     }
 }
-impl<T> Checksum for T {}
 
 pub fn init(rsdp_addr: u64) -> Result<(), Error> {
-    init_start!();
-    rsdp::init(rsdp_addr)?;
-    xsdt::init()?;
-    fadt::init()?;
-    facs::init()?;
-    dsdt::init()?;
-    madt::init()?;
-    init_end!();
-    Ok(())
+    let xsdt_addr = rsdp::init(rsdp_addr)?;
+    xsdt::init(xsdt_addr)?;
+    fadt::init()
 }
 
 #[repr(C, packed)]
@@ -64,13 +48,14 @@ struct Header {
     creator_id: [u8; 4],
     creator_revision: [u8; 4],
 }
+impl Checksum for Header {}
 impl Header {
     fn init(&self, signature: [u8; 4]) -> Result<(), Error> {
         if self.signature != signature {
-            return Err(Error::ACPI(ACPI::InvalidSignature));
+            return Err(Error::InvalidSignature);
         }
         if !self.checksum(self.length as usize) {
-            return Err(Error::ACPI(ACPI::InvalidChecksum));
+            return Err(Error::InvalidChecksum);
         }
         Ok(())
     }

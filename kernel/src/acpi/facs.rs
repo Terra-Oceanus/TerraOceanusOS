@@ -1,8 +1,8 @@
 //! Firmware ACPI Control Structure
 
-use crate::{Error, Output, init_check, init_end, init_start};
+use crate::traits::FromAddr;
 
-use super::{FromAddr, Header};
+use super::{Error, Header};
 
 pub const SIGNATURE: &[u8; 4] = b"FACS";
 
@@ -16,18 +16,13 @@ pub fn set_config(addr: u64) {
 struct FACS {
     header: Header,
 }
+impl FromAddr for FACS {}
 impl FACS {
     fn init(&self) -> Result<(), Error> {
-        init_start!();
-        self.header.init(*SIGNATURE)?;
-        init_end!();
-        Ok(())
+        self.header.init(*SIGNATURE)
     }
 }
 
 pub fn init() -> Result<(), Error> {
-    unsafe {
-        init_check!(ADDR);
-        FACS::get_ref(ADDR).init()
-    }
+    unsafe { FACS::get_ref(ADDR).init() }
 }

@@ -2,17 +2,9 @@
 
 use core::ptr::{read_volatile, write_volatile};
 
-use crate::{Error, Output, init_check, init_end, init_message, init_start};
-
 mod timer;
 
-static mut ADDR: u64 = 0;
-
-pub fn set_config(addr: u32) {
-    unsafe {
-        ADDR = addr as u64;
-    }
-}
+static mut ADDR: u32 = 0;
 
 #[repr(u16)]
 enum Local {
@@ -279,37 +271,30 @@ enum Local {
     /// - Bits 4 ..= 31: Reserved
     TDCR = 0x3E0,
 }
+impl Local {
+    fn read(self) -> u32 {
+        unsafe { read_volatile((ADDR + self as u32) as *const u32) }
+    }
 
-#[inline(always)]
-fn read(reg: Local) -> u32 {
-    unsafe { read_volatile((ADDR + reg as u64) as *const u32) }
+    fn write(self, value: u32) {
+        unsafe { write_volatile((ADDR + self as u32) as *mut u32, value) }
+    }
 }
 
-#[inline(always)]
-fn write(reg: Local, value: u32) {
-    unsafe { write_volatile((ADDR + reg as u64) as *mut u32, value) }
-}
-
-pub fn init() -> Result<(), Error> {
-    init_check!(unsafe { ADDR });
-    init_start!();
-    init_message!(true, false, "Local APIC is ");
-    let mut sivr = read(Local::SIVR);
+pub fn init(addr: u32) {
+    unsafe { ADDR = addr };
+    let mut sivr = Local::SIVR.read();
     if (sivr >> 8) & 1 == 0 {
-        init_message!(false, false, "disabled...");
         sivr |= 1 << 8;
-        write(Local::SIVR, sivr);
+        Local::SIVR.write(sivr);
     };
-    init_message!(false, true, "enabled");
     timer::init();
-    init_end!();
-    Ok(())
 }
 
 pub fn id() -> u32 {
-    read(Local::ID)
+    Local::ID.read()
 }
 
 pub fn eoi() {
-    write(Local::EOI, 0);
+    Local::EOI.write(0);
 }

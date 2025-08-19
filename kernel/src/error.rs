@@ -1,26 +1,20 @@
 //! Error
 
-pub enum ACPI {
-    InvalidSignature,
-    InvalidChecksum,
-    InvalidRevision,
-    InvalidLength,
-    InvalidReserved,
-}
-
-pub enum IOAPIC {
-    MaxCountReached,
-    InvalidGSIIndex,
-}
-
-pub enum Memory {
-    InvalidAllocationSize,
-    OutOfMemory,
-    InvalidIndex,
-}
-
 pub enum Error {
-    ACPI(ACPI),
-    IOAPIC(IOAPIC),
-    Memory(Memory),
+    ACPI(crate::acpi::Error),
+    Drivers(crate::drivers::Error),
+    Memory(crate::memory::Error),
+    X86_64(crate::x86_64::Error),
+}
+impl crate::Output for Error {
+    fn output(&self) {
+        "Error ".output();
+        match self {
+            Error::ACPI(e) => e.output(),
+            Error::Drivers(e) => e.output(),
+            Error::Memory(e) => e.output(),
+            Error::X86_64(e) => e.output(),
+        }
+        ".\n".output();
+    }
 }

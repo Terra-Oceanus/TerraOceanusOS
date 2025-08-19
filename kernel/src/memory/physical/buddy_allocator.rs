@@ -2,9 +2,7 @@
 
 use core::slice::from_raw_parts_mut;
 
-use crate::error::{Error, Memory};
-
-use super::PAGE_SIZE;
+use super::{Error, PAGE_SIZE};
 
 static mut BUDDY_ALLOCATOR: BuddyAllocator = BuddyAllocator::null();
 
@@ -92,7 +90,7 @@ impl BuddyAllocator {
                 order -= 1;
             }
             if index + (1 << order) > unsafe { BUDDY_ALLOCATOR.page_count } as usize {
-                return Err(Error::Memory(Memory::InvalidIndex));
+                return Err(Error::InvalidIndex);
             }
 
             unsafe {
@@ -108,10 +106,10 @@ impl BuddyAllocator {
         Ok(())
     }
 
-    pub fn allocate(size: u64) -> Result<usize, Error> {
+    pub fn allocate(size: u64) -> Result<u64, Error> {
         let pages = (size + PAGE_SIZE - 1) / PAGE_SIZE;
         if pages == 0 || pages > (1 << unsafe { BUDDY_ALLOCATOR.max_order }) {
-            return Err(Error::Memory(Memory::InvalidAllocationSize));
+            return Err(Error::InvalidAllocationSize);
         }
 
         let mut order = 0;
@@ -140,18 +138,19 @@ impl BuddyAllocator {
                     BUDDY_ALLOCATOR.page_info[head].order = order as u8;
                     BUDDY_ALLOCATOR.page_info[head].next = 0;
 
-                    return Ok(head);
+                    return Ok(head as u64 * PAGE_SIZE);
                 }
                 current_order += 1;
             }
         }
-        Err(Error::Memory(Memory::OutOfMemory))
+        Err(Error::OutOfMemory)
     }
 
-    pub fn deallocate(index: usize) -> Result<(), Error> {
+    pub fn deallocate(addr: u64) -> Result<(), Error> {
+        let index = (addr / PAGE_SIZE) as usize;
         unsafe {
             if index >= BUDDY_ALLOCATOR.page_count as usize {
-                return Err(Error::Memory(Memory::InvalidIndex));
+                return Err(Error::InvalidIndex);
             }
 
             let mut index = index;

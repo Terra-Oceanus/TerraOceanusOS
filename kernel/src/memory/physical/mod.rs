@@ -1,8 +1,6 @@
 //! Physical
 
-use crate::{Output, error::Error, init_end, init_start};
-
-use super::PAGE_SIZE;
+use super::{Error, PAGE_SIZE};
 
 mod buddy_allocator;
 
@@ -54,7 +52,6 @@ struct Descriptor {
 }
 
 pub fn init(entry: usize, descriptor_size: usize, descriptor_count: usize) -> Result<(), Error> {
-    init_start!();
     let mut size = 0;
     for i in 0..descriptor_count {
         let descriptor = unsafe { &*((entry + i * descriptor_size) as *const Descriptor) };
@@ -94,14 +91,13 @@ pub fn init(entry: usize, descriptor_size: usize, descriptor_count: usize) -> Re
             BuddyAllocator::add(descriptor.phys_start, descriptor.page_count)?;
         }
     }
-    init_end!();
     Ok(())
 }
 
-pub fn allocate(size: u64) -> Result<usize, Error> {
+pub fn allocate(size: u64) -> Result<u64, Error> {
     BuddyAllocator::allocate(size)
 }
 
-pub fn deallocate(index: usize) -> Result<(), Error> {
-    BuddyAllocator::deallocate(index)
+pub fn deallocate(addr: u64) -> Result<(), Error> {
+    BuddyAllocator::deallocate(addr)
 }
