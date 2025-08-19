@@ -1,6 +1,6 @@
 //! Queue
 
-mod submission;
+pub mod submission;
 
 struct Queue {
     id: u16,

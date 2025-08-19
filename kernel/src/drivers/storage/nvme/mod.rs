@@ -18,6 +18,7 @@ pub fn set_config(addr: u64) {
     unsafe { ADDR = addr }
 }
 
+static mut DSTRD: u64 = 0;
 static mut ASQ_ADDR: u64 = 0;
 static mut ACQ_ADDR: u64 = 0;
 
@@ -345,18 +346,19 @@ pub fn init() -> Result<(), crate::Error> {
         return Err(Error::InvalidAddress.into());
     }
 
+    unsafe { DSTRD = (Register::CAP.read() >> 32) & 0xF };
+
     Register::CC.write(0);
     while (Register::CSTS.read() & 0b1) == 1 {
         spin_loop();
     }
 
-    const SUBMISSION_QUEUE_ENTRY_SIZE: u64 = 64;
     const COMPLETION_QUEUE_ENTRY_SIZE: u64 = 16;
 
     const ADMIN_QUEUE_ENTRY_COUNT: u64 = 32;
     Register::AQA.write(((ADMIN_QUEUE_ENTRY_COUNT - 1) << 16) | (ADMIN_QUEUE_ENTRY_COUNT - 1));
     unsafe {
-        ASQ_ADDR = allocate(ADMIN_QUEUE_ENTRY_COUNT * SUBMISSION_QUEUE_ENTRY_SIZE)?;
+        ASQ_ADDR = allocate(ADMIN_QUEUE_ENTRY_COUNT * queue::submission::ENTRY_SIZE as u64)?;
         Register::ASQ.write(ASQ_ADDR);
 
         ACQ_ADDR = allocate(ADMIN_QUEUE_ENTRY_COUNT * COMPLETION_QUEUE_ENTRY_SIZE)?;

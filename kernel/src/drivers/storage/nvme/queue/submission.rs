@@ -1,12 +1,29 @@
 //! Submission
 
+use core::ptr::{copy_nonoverlapping, write_volatile};
+
+pub const ENTRY_SIZE: usize = 64;
+
 pub struct Submission {
     queue: super::Queue,
 
     tail: u16,
 }
+impl Submission {
+    fn enqueue(&mut self, cmd: Command) {
+        unsafe {
+            copy_nonoverlapping(
+                &cmd as *const Command as *const u8,
+                (self.queue.addr as *mut u8).add((self.tail % self.queue.size) as usize * 64),
+                ENTRY_SIZE,
+            );
+            write_volatile(self.queue.doorbell, self.tail as u32);
+        }
+        self.tail += self.tail.wrapping_add(1);
+    }
+}
 
-#[repr(C)]
+#[repr(C, packed)]
 pub struct Command {
     /// Command Dword 0
     /// - Bits 0 ..= 7: OPC for Opcode
@@ -69,4 +86,3 @@ pub struct Command {
     /// Command Dword 15
     cdw15: u32,
 }
-impl Command {}
