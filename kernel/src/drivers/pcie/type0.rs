@@ -29,8 +29,8 @@ struct Type0 {
     subsystem_vendor_id: u16,
     subsystem_id: u16,
 
-    /// - Bit 0: Expansion ROM Enable (RW)
-    /// - Bits 1 ..= 3: Expansion ROM Validation Status (RO)
+    /// - Bit 0: Expansion ROM Enable
+    /// - Bits 1 ..= 3: Expansion ROM Validation Status
     ///   - 0b000: Validation not supported
     ///   - 0b001: Validation in Progress
     ///   - 0b010: Validation Pass Valid contents, trust test was not performed
@@ -39,9 +39,9 @@ struct Type0 {
     ///   - 0b101: Validation Fail Valid but untrusted contents
     ///   - 0b110: Warning Pass Validation Passed with implementation specific warning. Valid contents, trust test was not performed
     ///   - 0b111: Warning Pass Validation Passed with implementation specific warning. Valid and trusted contents
-    /// - Bits 4 ..= 7: Expansion ROM Validation Details (RO)
+    /// - Bits 4 ..= 7: Expansion ROM Validation Details
     /// - Bits 8 ..= 10: Reserved
-    /// - Bits 11 ..= 31: Expansion ROM Base Address (RW)
+    /// - Bits 11 ..= 31: Expansion ROM Base Address
     expansion_rom_base_address: u32,
 
     p_capabilities: u8,

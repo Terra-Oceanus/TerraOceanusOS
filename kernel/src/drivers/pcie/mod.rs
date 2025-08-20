@@ -2,6 +2,7 @@
 
 use crate::{acpi::mcfg, traits::FromAddr};
 
+mod capability;
 pub mod error;
 mod type0;
 mod type1;
@@ -15,54 +16,54 @@ pub struct Header {
 
     device_id: u16,
 
-    /// - Bit 0: I/O Space Enable (R/W)
-    /// - Bit 1: Memory Space Enable (R/W)
-    /// - Bit 2: Bus Master Enable (R/W)
+    /// - Bit 0: I/O Space Enable
+    /// - Bit 1: Memory Space Enable
+    /// - Bit 2: Bus Master Enable
     /// - Bits 3 ..= 5: 0
-    /// - Bit 6: Parity Error Response (R/W)
+    /// - Bit 6: Parity Error Response
     /// - Bit 7: 0
-    /// - Bit 8: SERR# Enable (R/W)
+    /// - Bit 8: SERR# Enable
     /// - Bit 9: 0
-    /// - Bit 10: Interrupt Disable (R/W)
+    /// - Bit 10: Interrupt Disable
     /// - Bits 11 ..= 15: Reserved
     command: u16,
 
-    /// - Bit 0: Immediate Readiness (RO)
+    /// - Bit 0: Immediate Readiness
     /// - Bits 1 ..= 2: Reserved
-    /// - Bit 3: Interrupt Status (RO)
+    /// - Bit 3: Interrupt Status
     /// - Bit 4: 1
     /// - Bit 5: 0
     /// - Bit 6: Reserved
     /// - Bit 7: 0
-    /// - Bit 8: Master Data Parity Error (R/W1C)
+    /// - Bit 8: Master Data Parity Error
     /// - Bits 9 ..= 10: 0
-    /// - Bit 11: Signaled Target Abort (R/W1C)
-    /// - Bit 12: Received Target Abort (R/W1C)
-    /// - Bit 13: Received Master Abort (R/W1C)
-    /// - Bit 14: Signaled System Error (R/W1C)
-    /// - Bit 15: Detected Parity Error (R/W1C)
+    /// - Bit 11: Signaled Target Abort
+    /// - Bit 12: Received Target Abort
+    /// - Bit 13: Received Master Abort
+    /// - Bit 14: Signaled System Error
+    /// - Bit 15: Detected Parity Error
     status: u16,
 
     revision_id: u8,
 
-    /// - Bits 0 ..= 7: Programming Interface (RO)
-    /// - Bits 8 ..= 15: Sub-Class Code (RO)
-    /// - Bits 16 ..= 23: Base Class Code (RO)
+    /// - Bits 0 ..= 7: Programming Interface
+    /// - Bits 8 ..= 15: Sub-Class Code
+    /// - Bits 16 ..= 23: Base Class Code
     class_code: [u8; 3],
 
     reserved: u16,
 
-    /// - Bits 0 ..= 6: Header Layout (RO)
-    /// - Bit 7: Multi-Function Device (RO)
+    /// - Bits 0 ..= 6: Header Layout
+    /// - Bit 7: Multi-Function Device
     ///   - 0: Single Function
     ///   - 1: Multiple Functions
     header_type: u8,
 
     /// Built-in Self Test
-    /// - Bits 0 ..= 3: Completion Code (RO)
+    /// - Bits 0 ..= 3: Completion Code
     /// - Bits 4 ..= 5: Reserved
-    /// - Bit 6: Start BIST (RW)
-    /// - Bit 7: BIST Capable (RO)
+    /// - Bit 6: Start BIST
+    /// - Bit 7: BIST Capable
     bist: u8,
 }
 impl FromAddr for Header {}
