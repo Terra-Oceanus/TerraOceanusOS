@@ -1,10 +1,11 @@
 //! Capability
 
+use crate::{io::text::Output, traits::FromAddr};
+
 #[repr(C, packed)]
 struct Capability {
-    /// - Bits 0 ..= 7: Capability ID
-    /// - Bits 8 ..= 15: Next Capability Pointer
-    capability_list: u16,
+    /// - Capability ID: 0x10
+    header: super::Header,
 
     /// - Bits 0 ..= 3: Capability Version
     /// - Bits 4 ..= 7: Device/Port Type
@@ -108,10 +109,14 @@ struct Capability {
     ///   - 0b11: Supported
     /// - Bits 3 ..= 31: Reserved
     slot_capabilities_2: u32,
-    
+
     /// Reserved
     slot_control_2: u16,
 
     /// Reserved
     slot_status_2: u16,
+}
+impl FromAddr for Capability {}
+impl Capability {
+    fn handle(&self) {}
 }

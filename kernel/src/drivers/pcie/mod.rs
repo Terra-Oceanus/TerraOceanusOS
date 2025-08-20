@@ -2,7 +2,7 @@
 
 use crate::{acpi::mcfg, traits::FromAddr};
 
-mod capability;
+mod capabilities;
 pub mod error;
 mod type0;
 mod type1;
