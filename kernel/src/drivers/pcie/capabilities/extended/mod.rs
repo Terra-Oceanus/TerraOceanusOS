@@ -9,11 +9,15 @@ struct Header {
     info: u16,
 }
 impl Header {
-    fn version(&self) -> u8 {
+    pub fn id(&self) -> u16 {
+        self.extended_capability_id
+    }
+
+    pub fn version(&self) -> u8 {
         (self.info & 0xF) as u8
     }
 
-    fn next_capability_offset(&self) -> u16 {
+    pub fn next_capability_offset(&self) -> u16 {
         self.info >> 4
     }
 }

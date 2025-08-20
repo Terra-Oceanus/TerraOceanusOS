@@ -1,10 +1,9 @@
 //! Capability
 
-use crate::{io::text::Output, traits::FromAddr};
+pub const CAPABILITY_ID: u8 = 0x10;
 
 #[repr(C, packed)]
 struct Capability {
-    /// - Capability ID: 0x10
     header: super::Header,
 
     /// - Bits 0 ..= 3: Capability Version
@@ -115,8 +114,4 @@ struct Capability {
 
     /// Reserved
     slot_status_2: u16,
-}
-impl FromAddr for Capability {}
-impl Capability {
-    fn handle(&self) {}
 }
