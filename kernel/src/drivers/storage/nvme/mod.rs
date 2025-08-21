@@ -7,6 +7,7 @@ use core::{
 
 mod command;
 mod error;
+pub mod pcie;
 mod queue;
 
 pub use error::Error;
@@ -393,7 +394,9 @@ pub fn init() -> Result<(), crate::Error> {
         spin_loop();
     }
 
-    command::admin::submit(
+    Register::INTMC.write(0xFFFFFFFF);
+
+    let completion = command::admin::execute(
         command::Submission::null()
             .to_identify()?
             .identify_to_controller(),

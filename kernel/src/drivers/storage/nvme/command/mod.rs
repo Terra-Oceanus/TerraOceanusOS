@@ -1,5 +1,7 @@
 //! Command
 
+use crate::traits::FromAddr;
+
 pub mod admin;
 
 #[repr(C, packed)]
@@ -81,5 +83,47 @@ impl Submission {
             cdw14: 0,
             cdw15: 0,
         }
+    }
+}
+
+#[repr(C, packed)]
+pub struct Completion {
+    dw0: u32,
+    dw1: u32,
+
+    /// - Bits 0 ..= 15: SQHD for SQ Head Pointer
+    /// - Bits 16 ..= 31: SQID for SQ Identifier
+    dw2: u32,
+
+    /// - Bits 0 ..= 15: CID for Command Identifier
+    /// - Bit 16: P for Phase Tag
+    /// - Bits 17 ..= 31: STATUS for Status
+    ///   - Bits 0 ..= 7: SC for Status Code
+    ///     - if SCT is 0x0
+    ///       - 0x00: Successful Completion
+    ///   - Bits 8 ..= 10: SCT for Status Code Type
+    ///     - 0x0: Generic Command Status
+    ///     - 0x1: Command Specific Status
+    ///     - 0x2: Media and Data Integrity Errors
+    ///     - 0x3: Path Related Status
+    ///     - 0x4 ..= 0x6: Reserved
+    ///     - 0x7: Vendor Specific
+    ///   - Bits 11 ..= 12: CRD for Command Retry Delay
+    ///   - Bit 13: M for More
+    ///   - Bit 14: DNR for Do Not Retry
+    dw3: u32,
+}
+impl FromAddr for Completion {}
+impl Completion {
+    pub fn phase(&self) -> bool {
+        ((self.dw3 >> 16) & 0b1) == 1
+    }
+
+    pub fn sc(&self) -> u8 {
+        (self.dw3 >> 17) as u8
+    }
+
+    pub fn sct(&self) -> u8 {
+        (((self.dw3 >> 17) >> 8) & 0b111) as u8
     }
 }

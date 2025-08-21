@@ -2,7 +2,7 @@
 
 use crate::{acpi::mcfg, traits::FromAddr};
 
-mod capabilities;
+pub mod capabilities;
 pub mod error;
 mod type0;
 mod type1;
@@ -76,12 +76,46 @@ impl Header {
         (self.header_type & 0b10000000) != 0
     }
 
-    pub fn handle(&self) -> Result<(), Error> {
+    pub fn handle(&self) -> Result<(), crate::Error> {
         match self.header_type & 0b01111111 {
-            0 => Ok(type0::handle(self as *const Self as u64)),
+            0 => type0::handle(self as *const Self as u64),
             1 => Ok(()),
-            _ => Err(Error::InvalidHeaderType),
+            _ => Err(Error::InvalidHeaderType.into()),
         }
+    }
+}
+
+/// Base Address Register
+/// - Memory Space
+///   - Bit 0: 0
+///   - Bits 1 ..= 2: Type
+///     - 0b00: 32-bits
+///     - 0b01: Reserved
+///     - 0b10: 64-bits
+///     - 0b11: Reserved
+///   - Bit 3: Undefined
+///   - Bits 4 ..= 31: 16-Byte Aligned Base Address
+/// - I/O Space
+///   - Bit 0: 1
+///   - Bit 1: Reserved
+///   - Bits 2 ..= 31: 4-Byte Aligned Base Address
+#[repr(C, packed)]
+pub struct BAR(u32);
+impl BAR {
+    fn is_memory(&self) -> bool {
+        self.0 & 0b1 == 0
+    }
+
+    fn is_64bit(&self) -> bool {
+        (self.0 >> 1) & 0b11 == 0b10
+    }
+
+    fn addr(&self) -> u64 {
+        (if self.is_memory() {
+            self.0 >> 4
+        } else {
+            self.0 >> 2
+        }) as u64
     }
 }
 

@@ -7,7 +7,7 @@ mod error;
 mod msr;
 
 pub use dt::gdt;
-use dt::idt;
+pub use dt::idt;
 pub use error::Error;
 
 pub fn init() -> Result<(), crate::Error> {

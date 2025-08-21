@@ -22,7 +22,7 @@ impl super::super::Submission {
     ///   - Bits 7 ..= 31: Reserved
     pub fn to_identify(&mut self) -> Result<&mut Self, crate::Error> {
         self.cdw0 = 0x06;
-        self.dptr = allocate(0x1000)?.into();
+        self.dptr = allocate(0x1000)? as u128;
         Ok(self)
     }
 }

@@ -3,11 +3,11 @@
 use crate::traits::FromAddr;
 
 mod capability;
-mod extended;
-mod msi_x;
+pub mod extended;
+pub mod msi_x;
 
 #[repr(C)]
-struct Header {
+pub struct Header {
     capability_id: u8,
 
     next_capability_pointer: u8,

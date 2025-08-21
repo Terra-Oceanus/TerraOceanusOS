@@ -15,3 +15,14 @@ pub fn init() -> Result<(u64, u64), crate::Error> {
 pub fn submit(cmd: &mut super::Submission) {
     unsafe { (*(&raw mut QUEUE)).submission.enqueue(cmd) };
 }
+
+pub fn poll() -> &'static super::Completion {
+    unsafe { (*(&raw mut QUEUE)).completion.dequeue() }
+}
+
+pub fn execute(cmd: &mut super::Submission) -> &'static super::Completion {
+    unsafe {
+        (*(&raw mut QUEUE)).submission.enqueue(cmd);
+        (*(&raw mut QUEUE)).completion.dequeue()
+    }
+}

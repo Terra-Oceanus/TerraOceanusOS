@@ -82,6 +82,7 @@ pub enum Interrupt {
 
     Timer = 32,
     Keyboard,
+    NVMe,
 }
 
 #[repr(C)]
@@ -239,5 +240,9 @@ pub fn timer() {
 
 pub fn keyboard() {
     keyboard::input(port::in_byte(port::PS2_DATA));
+    eoi();
+}
+
+pub fn nvme() {
     eoi();
 }

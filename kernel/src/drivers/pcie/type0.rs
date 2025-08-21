@@ -8,21 +8,7 @@ use super::{super::storage::nvme, Header};
 struct Type0 {
     header: Header,
 
-    /// Base Address Register
-    /// - Memory Space
-    ///   - Bit 0: 0
-    ///   - Bits 1 ..= 2: Type
-    ///     - 0b00: 32-bits
-    ///     - 0b01: Reserved
-    ///     - 0b10: 64-bits
-    ///     - 0b11: Reserved
-    ///   - Bit 3: Undefined
-    ///   - Bits 4 ..= 31: 16-Byte Aligned Base Address
-    /// - I/O Space
-    ///   - Bit 0: 1
-    ///   - Bit 1: Reserved
-    ///   - Bits 2 ..= 31: 4-Byte Aligned Base Address
-    bar: [u32; 6],
+    bar: [super::BAR; 6],
 
     reserved0: u32,
 
@@ -55,7 +41,7 @@ struct Type0 {
 }
 impl FromAddr for Type0 {}
 impl Type0 {
-    fn handle(&self) {
+    fn handle(&self) -> Result<(), crate::Error> {
         match self.header.class_code[2] {
             // Mass Storage Controller
             0x01 => match self.header.class_code[1] {
@@ -63,8 +49,19 @@ impl Type0 {
                 0x08 => match self.header.class_code[0] {
                     // NVM Express
                     0x02 => {
+                        if !self.bar[0].is_memory() {
+                            return Err(super::Error::Unsupported.into());
+                        }
+                        nvme::pcie::handle_capabilities(
+                            self as *const Self as u64,
+                            self.p_capabilities,
+                        )?;
                         nvme::set_config(
-                            ((self.bar[1] as u64) << 32) | (self.bar[0] & 0xFFFFFFF0) as u64,
+                            if self.bar[0].is_64bit() {
+                                (self.bar[1].0 as u64) << 32
+                            } else {
+                                0
+                            } | self.bar[0].addr(),
                         );
                     }
                     _ => {}
@@ -73,9 +70,10 @@ impl Type0 {
             },
             _ => {}
         }
+        Ok(())
     }
 }
 
-pub fn handle(addr: u64) {
-    Type0::get_ref(addr).handle();
+pub fn handle(addr: u64) -> Result<(), crate::Error> {
+    Type0::get_ref(addr).handle()
 }

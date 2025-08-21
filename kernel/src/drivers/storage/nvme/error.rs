@@ -2,6 +2,7 @@
 
 pub enum Error {
     InvalidAddress,
+    InvalidCapability,
     InvalidRegisterValue,
 }
 impl From<Error> for super::super::Error {
@@ -25,6 +26,7 @@ impl crate::Output for Error {
         match self {
             Error::InvalidAddress => "Invalid Address",
             Error::InvalidRegisterValue => "Invalid Register Value",
+            Error::InvalidCapability => "Invalid Capability",
         }
         .output();
     }

@@ -2,6 +2,8 @@
 
 pub enum Error {
     InvalidHeaderType,
+
+    Unsupported,
 }
 impl From<Error> for super::super::Error {
     fn from(err: Error) -> Self {
@@ -18,6 +20,7 @@ impl crate::Output for Error {
         "PCIe ".output();
         match self {
             Error::InvalidHeaderType => "Invalid Header Type",
+            Error::Unsupported => "Unsupported",
         }
         .output();
     }

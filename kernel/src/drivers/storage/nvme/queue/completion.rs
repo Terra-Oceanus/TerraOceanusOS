@@ -1,8 +1,10 @@
 //! Completion
 
-use core::ptr;
+use core::ptr::{self, write_volatile};
 
-use crate::memory::physical::allocate;
+use crate::{memory::physical::allocate, traits::FromAddr};
+
+use super::super::command::Completion as Command;
 
 const ENTRY_SIZE: usize = 16;
 
@@ -34,5 +36,22 @@ impl Completion {
             unsafe { super::super::ADDR + (2 * id as u64 + 1) * (1 << (2 + super::super::DSTRD)) }
                 as *mut u32;
         Ok(self.addr)
+    }
+
+    pub fn dequeue(&mut self) -> &Command {
+        let mut command = Command::get_ref(self.addr + (self.head as u64 * ENTRY_SIZE as u64));
+        while command.phase() != self.phase {
+            command = Command::get_ref(self.addr + (self.head as u64 * ENTRY_SIZE as u64));
+        }
+
+        self.head += 1;
+        if self.head >= self.size {
+            self.head = 0;
+            self.phase = !self.phase;
+        }
+
+        unsafe { write_volatile(self.doorbell, self.head as u32) };
+
+        command
     }
 }
