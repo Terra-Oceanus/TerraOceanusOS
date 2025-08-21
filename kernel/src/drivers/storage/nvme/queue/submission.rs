@@ -42,8 +42,8 @@ impl Submission {
                 (self.addr as *mut u8).add((self.tail % self.size) as usize * ENTRY_SIZE),
                 ENTRY_SIZE,
             );
+            self.tail = self.tail.wrapping_add(1);
             write_volatile(self.doorbell, (self.tail % self.size) as u32);
         }
-        self.tail = self.tail.wrapping_add(1);
     }
 }
