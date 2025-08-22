@@ -12,13 +12,32 @@ mod queue;
 
 pub use error::Error;
 
-static mut ADDR: u64 = 0;
+use crate::io::text::Output;
+
+static mut PCIE_ADDR: u64 = 0;
 
 pub fn set_config(addr: u64) {
-    unsafe { ADDR = addr }
+    unsafe { PCIE_ADDR = addr };
 }
 
-static mut DSTRD: u64 = 0;
+static mut NVME: NVMe = NVMe::null();
+
+struct NVMe {
+    addr: u64,
+
+    msi_x: u64,
+
+    dstrd: u8,
+}
+impl NVMe {
+    const fn null() -> Self {
+        Self {
+            addr: 0,
+            msi_x: 0,
+            dstrd: 0,
+        }
+    }
+}
 
 #[repr(u16)]
 enum Register {
@@ -315,7 +334,7 @@ impl Register {
     }
 
     fn addr(self) -> u64 {
-        unsafe { ADDR + self as u64 }
+        unsafe { NVME.addr + self as u64 }
     }
 
     fn read(self) -> u64 {
@@ -339,17 +358,21 @@ impl Register {
     }
 }
 
-pub fn init() -> Result<(), crate::Error> {
-    if unsafe { ADDR == 0 } {
-        return Err(Error::InvalidAddress.into());
+pub fn disable() -> Result<(), Error> {
+    if unsafe { NVME.addr == 0 } {
+        return Err(Error::InvalidAddress);
     }
-
-    unsafe { DSTRD = (Register::CAP.read() >> 32) & 0xF };
 
     Register::CC.write(0);
     while (Register::CSTS.read() & 0b1) == 1 {
         spin_loop();
     }
+
+    Ok(())
+}
+
+pub fn init() -> Result<(), crate::Error> {
+    unsafe { NVME.dstrd = ((Register::CAP.read() >> 32) & 0xF) as u8 };
 
     let (asq, acq) = command::admin::init()?;
 
@@ -396,11 +419,11 @@ pub fn init() -> Result<(), crate::Error> {
 
     Register::INTMC.write(0xFFFFFFFF);
 
-    let completion = command::admin::execute(
-        command::Submission::null()
-            .to_identify()?
-            .identify_to_controller(),
-    );
+    let mut submission = command::Submission::identify_controller()?;
+    let completion = command::admin::execute(&mut submission);
+    if completion.sct() == 0 && completion.sc() == 0 {
+        (submission.dptr() as u64).output();
+    }
 
     Ok(())
 }

@@ -29,18 +29,18 @@ impl Submission {
     pub fn init(&mut self, id: u16, size: u16) -> Result<u64, crate::Error> {
         self.addr = allocate(size as u64 * ENTRY_SIZE as u64)?;
         self.size = size;
-        self.doorbell =
-            unsafe { super::super::ADDR + (2 * id as u64) * (1 << (2 + super::super::DSTRD)) }
-                as *mut u32;
+        self.doorbell = unsafe {
+            super::super::NVME.addr + (2 * id as u64) * (1 << (2 + super::super::NVME.dstrd))
+        } as *mut u32;
         Ok(self.addr)
     }
 
-    pub fn enqueue(&mut self, cmd: &mut Command) {
+    pub fn enqueue(&mut self, cmd: &Command) {
         unsafe {
             copy_nonoverlapping(
-                cmd as *const Command as *const u8,
-                (self.addr as *mut u8).add((self.tail % self.size) as usize * ENTRY_SIZE),
-                ENTRY_SIZE,
+                cmd as *const Command,
+                (self.addr as *mut Command).add((self.tail % self.size) as usize),
+                1,
             );
             self.tail = self.tail.wrapping_add(1);
             write_volatile(self.doorbell, (self.tail % self.size) as u32);

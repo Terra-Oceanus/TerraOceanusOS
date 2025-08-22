@@ -20,9 +20,10 @@ impl super::super::Submission {
     /// - Command Dword 14
     ///   - Bits 0 ..= 6: UIDX for UUID Index
     ///   - Bits 7 ..= 31: Reserved
-    pub fn to_identify(&mut self) -> Result<&mut Self, crate::Error> {
-        self.cdw0 = 0x06;
-        self.dptr = allocate(0x1000)? as u128;
-        Ok(self)
+    fn identify() -> Result<Self, crate::Error> {
+        let mut command = Self::null();
+        command.cdw0 = 0x06;
+        command.dptr = allocate(0x1000)? as u128;
+        Ok(command)
     }
 }

@@ -121,7 +121,7 @@ struct Table {
 impl Table {
     fn new(vector: u8) -> Self {
         Self {
-            message_address: ((0xFEE << 20) | (crate::x86_64::apic::lapic::id() << 12)).into(),
+            message_address: (0xFEE << 20) | ((crate::x86_64::apic::lapic::id() as u64) << 12),
             message_data: vector.into(),
             vector_control: 0,
         }

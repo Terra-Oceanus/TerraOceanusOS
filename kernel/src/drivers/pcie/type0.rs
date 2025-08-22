@@ -48,22 +48,7 @@ impl Type0 {
                 // Non-Volatile Memory Controller
                 0x08 => match self.header.class_code[0] {
                     // NVM Express
-                    0x02 => {
-                        if !self.bar[0].is_memory() {
-                            return Err(super::Error::Unsupported.into());
-                        }
-                        nvme::pcie::handle_capabilities(
-                            self as *const Self as u64,
-                            self.p_capabilities,
-                        )?;
-                        nvme::set_config(
-                            if self.bar[0].is_64bit() {
-                                (self.bar[1].0 as u64) << 32
-                            } else {
-                                0
-                            } | self.bar[0].addr(),
-                        );
-                    }
+                    0x02 => nvme::set_config(self as *const Self as u64),
                     _ => {}
                 },
                 _ => {}

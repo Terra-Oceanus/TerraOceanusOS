@@ -6,7 +6,6 @@ use super::super::super::pcie::capabilities::{Header, extended, msi_x};
 
 pub fn handle_capabilities(base: u64, p_capabilities: u8) -> Result<(), crate::Error> {
     let mut count = 1;
-
     let mut offset: u64 = p_capabilities as u64;
     while offset != 0 {
         let header = Header::get_ref(base + offset);
@@ -21,6 +20,9 @@ pub fn handle_capabilities(base: u64, p_capabilities: u8) -> Result<(), crate::E
             }
             _ => {}
         }
+        if count == 0 {
+            return Ok(());
+        }
         offset = header.next();
     }
     offset = 0x100;
@@ -30,12 +32,10 @@ pub fn handle_capabilities(base: u64, p_capabilities: u8) -> Result<(), crate::E
             0x0000 => break,
             _ => {}
         }
+        if count == 0 {
+            return Ok(());
+        }
         offset = header.next();
     }
-
-    if count != 0 {
-        Err(super::Error::InvalidCapability.into())
-    } else {
-        Ok(())
-    }
+    Err(super::Error::InvalidCapability.into())
 }

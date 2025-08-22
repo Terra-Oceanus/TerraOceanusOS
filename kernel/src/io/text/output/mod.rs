@@ -79,6 +79,11 @@ impl Output for u64 {
         }
     }
 }
+impl Output for bool {
+    fn output(&self) {
+        if *self { "True" } else { "False" }.output()
+    }
+}
 impl Output for char {
     fn output(&self) {
         if self.is_ascii_control() {

@@ -21,8 +21,6 @@ pub fn poll() -> &'static super::Completion {
 }
 
 pub fn execute(cmd: &mut super::Submission) -> &'static super::Completion {
-    unsafe {
-        (*(&raw mut QUEUE)).submission.enqueue(cmd);
-        (*(&raw mut QUEUE)).completion.dequeue()
-    }
+    submit(cmd);
+    poll()
 }

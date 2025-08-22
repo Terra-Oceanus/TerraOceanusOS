@@ -1,6 +1,9 @@
 //! Completion
 
-use core::ptr::{self, write_volatile};
+use core::{
+    hint::spin_loop,
+    ptr::{self, write_bytes, write_volatile},
+};
 
 use crate::{memory::physical::allocate, traits::FromAddr};
 
@@ -23,7 +26,7 @@ impl Completion {
             addr: 0,
             size: 0,
             head: 0,
-            phase: false,
+            phase: true,
             doorbell: ptr::null_mut(),
         }
     }
@@ -31,17 +34,21 @@ impl Completion {
     pub fn init(&mut self, id: u16, size: u16) -> Result<u64, crate::Error> {
         self.addr = allocate(size as u64 * ENTRY_SIZE as u64)?;
         self.size = size;
-        self.doorbell =
-            unsafe { super::super::ADDR + (2 * id as u64 + 1) * (1 << (2 + super::super::DSTRD)) }
-                as *mut u32;
+        unsafe { write_bytes(self.addr as *mut Command, 0, self.size as usize) };
+        self.doorbell = unsafe {
+            super::super::NVME.addr + (2 * id as u64 + 1) * (1 << (2 + super::super::NVME.dstrd))
+        } as *mut u32;
         Ok(self.addr)
     }
 
     pub fn dequeue(&mut self) -> &Command {
-        let mut command = Command::get_ref(self.addr + (self.head as u64 * ENTRY_SIZE as u64));
-        while command.phase() != self.phase {
-            command = Command::get_ref(self.addr + (self.head as u64 * ENTRY_SIZE as u64));
-        }
+        let command = loop {
+            let command = Command::get_ref(self.addr + (self.head as u64 * ENTRY_SIZE as u64));
+            if command.phase() == self.phase {
+                break command;
+            }
+            spin_loop();
+        };
         self.head = {
             if self.head + 1 == self.size {
                 self.phase = !self.phase;

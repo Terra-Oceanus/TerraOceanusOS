@@ -44,10 +44,10 @@ pub struct Submission {
 
     /// Data Pointer
     /// - PRP if CDW0.PSDT is 0b00
-    ///   - Bits 0 ..= 7: PRP1 for PRP Entry 1
-    ///   - Bits 8 ..= 15: PRP2 for PRP Entry 2
+    ///   - Bytes 0 ..= 7: PRP1 for PRP Entry 1
+    ///   - Bytes 8 ..= 15: PRP2 for PRP Entry 2
     /// - SGL1 for SGL Entry 1 if CDW0.PSDT is 0b01 ..= 0b10
-    pub dptr: u128,
+    dptr: u128,
 
     /// Command Dword 10
     cdw10: u32,
@@ -68,7 +68,7 @@ pub struct Submission {
     cdw15: u32,
 }
 impl Submission {
-    pub fn null() -> Self {
+    fn null() -> Self {
         Self {
             cdw0: 0,
             nsid: 0,
@@ -83,6 +83,10 @@ impl Submission {
             cdw14: 0,
             cdw15: 0,
         }
+    }
+
+    pub fn dptr(&self) -> u128 {
+        self.dptr
     }
 }
 
