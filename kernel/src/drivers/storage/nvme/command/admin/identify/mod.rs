@@ -2,7 +2,7 @@
 
 use crate::memory::physical::allocate;
 
-mod controller;
+pub mod controller;
 
 impl super::super::Submission {
     /// - Opcode: 0x06
@@ -21,9 +21,9 @@ impl super::super::Submission {
     ///   - Bits 0 ..= 6: UIDX for UUID Index
     ///   - Bits 7 ..= 31: Reserved
     fn identify() -> Result<Self, crate::Error> {
-        let mut command = Self::null();
-        command.cdw0 = 0x06;
-        command.dptr = allocate(0x1000)? as u128;
-        Ok(command)
+        let mut cmd = Self::null();
+        cmd.cdw0 = 0x06;
+        cmd.dptr = allocate(0x1000)? as u128;
+        Ok(cmd)
     }
 }

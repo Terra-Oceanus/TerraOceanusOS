@@ -103,7 +103,8 @@ impl NVMe {
         let mut submission = command::Submission::identify_controller()?;
         let completion = self.admin.submit(&mut submission).poll();
         if completion.sct() == 0 && completion.sc() == 0 {
-            (submission.dptr() as u64).output();
+            let data = command::admin::identify::controller::Data::get_ref(submission.prp1());
+            (data.vid() as u64).output();
         }
 
         Ok(())
