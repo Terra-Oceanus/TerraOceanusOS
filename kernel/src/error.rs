@@ -8,7 +8,7 @@ pub enum Error {
 }
 impl crate::Output for Error {
     fn output(&self) {
-        "Error ".output();
+        "Error: ".output();
         match self {
             Error::ACPI(e) => e.output(),
             Error::Drivers(e) => e.output(),
