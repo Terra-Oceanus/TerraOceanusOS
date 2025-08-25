@@ -1,8 +1,10 @@
 //! PCI Express
 
-use crate::{traits::FromAddr, x86_64::idt::Interrupt};
-
-use super::super::super::pcie::capabilities::{Header, extended, msi_x};
+use crate::{
+    drivers::pcie::capabilities::{Header, extended, msi_x},
+    traits::FromAddr,
+    x86_64::idt::Interrupt,
+};
 
 pub fn handle_capabilities(base: u64, p_capabilities: u8) -> Result<(), crate::Error> {
     let mut count = 1;

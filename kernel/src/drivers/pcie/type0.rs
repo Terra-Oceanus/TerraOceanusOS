@@ -1,8 +1,8 @@
 //! Standard Header
 
-use crate::traits::FromAddr;
+use crate::{drivers::storage::nvme, traits::FromAddr};
 
-use super::{super::storage::nvme, Header};
+use super::Header;
 
 #[repr(C)]
 pub struct Type0 {
