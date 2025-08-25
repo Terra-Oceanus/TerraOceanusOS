@@ -6,7 +6,6 @@ use super::{Error, PAGE_SIZE};
 
 static mut BUDDY_ALLOCATOR: BuddyAllocator = BuddyAllocator::null();
 
-#[repr(C, packed)]
 struct PageInfo {
     /// - True: Free
     /// - False: Used
@@ -26,7 +25,6 @@ impl PageInfo {
     }
 }
 
-#[repr(C, packed)]
 pub struct BuddyAllocator {
     page_count: u32,
 

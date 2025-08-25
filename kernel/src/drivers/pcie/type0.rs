@@ -4,7 +4,7 @@ use crate::traits::FromAddr;
 
 use super::{super::storage::nvme, Header};
 
-#[repr(C, packed)]
+#[repr(C)]
 pub struct Type0 {
     header: Header,
 

@@ -2,7 +2,7 @@
 
 pub const CAPABILITY_ID: u8 = 0x10;
 
-#[repr(C, packed)]
+#[repr(C)]
 struct Capability {
     header: super::Header,
 

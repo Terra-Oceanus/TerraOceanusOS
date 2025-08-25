@@ -10,7 +10,7 @@ mod type1;
 pub use error::Error;
 pub use type0::Type0;
 
-#[repr(C, packed)]
+#[repr(C)]
 pub struct Header {
     /// - 0xFFFF for no Function
     vendor_id: u16,
@@ -100,7 +100,6 @@ impl Header {
 ///   - Bit 0: 1
 ///   - Bit 1: Reserved
 ///   - Bits 2 ..= 31: 4-Byte Aligned Base Address
-#[repr(C, packed)]
 pub struct BAR(u32);
 impl BAR {
     fn is_memory(&self) -> bool {

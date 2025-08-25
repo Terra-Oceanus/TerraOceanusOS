@@ -90,7 +90,7 @@ impl Submission {
     }
 }
 
-#[repr(C, packed)]
+#[repr(C)]
 pub struct Completion {
     dw0: u32,
     dw1: u32,
