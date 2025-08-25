@@ -35,13 +35,11 @@ impl Completion {
         self.addr = allocate(size as u64 * ENTRY_SIZE as u64)?;
         self.size = size;
         unsafe { write_bytes(self.addr as *mut Command, 0, self.size as usize) };
-        self.doorbell = unsafe {
-            super::super::NVME.addr + (2 * id as u64 + 1) * (1 << (2 + super::super::NVME.dstrd))
-        } as *mut u32;
+        self.doorbell = super::super::Register::cqdb(id) as *mut u32;
         Ok(self.addr)
     }
 
-    pub fn dequeue(&mut self) -> &Command {
+    pub fn dequeue(&mut self) -> &'static Command {
         let command = loop {
             let command = Command::get_ref(self.addr + (self.head as u64 * ENTRY_SIZE as u64));
             if command.phase() == self.phase {

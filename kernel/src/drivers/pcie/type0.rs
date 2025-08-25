@@ -5,7 +5,7 @@ use crate::traits::FromAddr;
 use super::{super::storage::nvme, Header};
 
 #[repr(C, packed)]
-struct Type0 {
+pub struct Type0 {
     header: Header,
 
     bar: [super::BAR; 6],
@@ -41,7 +41,7 @@ struct Type0 {
 }
 impl FromAddr for Type0 {}
 impl Type0 {
-    fn handle(&self) -> Result<(), crate::Error> {
+    pub fn handle(&self) {
         match self.header.class_code[2] {
             // Mass Storage Controller
             0x01 => match self.header.class_code[1] {
@@ -55,10 +55,18 @@ impl Type0 {
             },
             _ => {}
         }
-        Ok(())
     }
-}
 
-pub fn handle(addr: u64) -> Result<(), crate::Error> {
-    Type0::get_ref(addr).handle()
+    pub fn bar(&self, index: usize) -> Result<u64, super::Error> {
+        let bar = &self.bar[index];
+        if !bar.is_memory() {
+            return Err(super::Error::Unsupported);
+        }
+
+        Ok((if bar.is_64bit() {
+            (self.bar[index + 1].0 as u64) << 32
+        } else {
+            0
+        }) | bar.addr())
+    }
 }

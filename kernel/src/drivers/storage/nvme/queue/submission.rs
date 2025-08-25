@@ -29,9 +29,7 @@ impl Submission {
     pub fn init(&mut self, id: u16, size: u16) -> Result<u64, crate::Error> {
         self.addr = allocate(size as u64 * ENTRY_SIZE as u64)?;
         self.size = size;
-        self.doorbell = unsafe {
-            super::super::NVME.addr + (2 * id as u64) * (1 << (2 + super::super::NVME.dstrd))
-        } as *mut u32;
+        self.doorbell = super::super::Register::sqdb(id) as *mut u32;
         Ok(self.addr)
     }
 

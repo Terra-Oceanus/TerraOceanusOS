@@ -8,6 +8,7 @@ mod type0;
 mod type1;
 
 pub use error::Error;
+pub use type0::Type0;
 
 #[repr(C, packed)]
 pub struct Header {
@@ -78,7 +79,7 @@ impl Header {
 
     pub fn handle(&self) -> Result<(), crate::Error> {
         match self.header_type & 0b01111111 {
-            0 => type0::handle(self as *const Self as u64),
+            0 => Ok(Type0::get_ref(self as *const Self as u64).handle()),
             1 => Ok(()),
             _ => Err(Error::InvalidHeaderType.into()),
         }

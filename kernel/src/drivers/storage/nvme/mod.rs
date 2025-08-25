@@ -11,31 +11,102 @@ pub mod pcie;
 mod queue;
 
 pub use error::Error;
+use queue::Queue;
 
-use crate::io::text::Output;
-
-static mut PCIE_ADDR: u64 = 0;
-
-pub fn set_config(addr: u64) {
-    unsafe { PCIE_ADDR = addr };
-}
+use crate::{io::text::Output, traits::FromAddr};
 
 static mut NVME: NVMe = NVMe::null();
 
-struct NVMe {
-    addr: u64,
+pub fn set_config(addr: u64) {
+    unsafe { NVME.pcie_addr = addr };
+}
 
+struct NVMe {
+    pcie_addr: u64,
+
+    base: u64,
     msi_x: u64,
 
     dstrd: u8,
+
+    admin: Queue,
 }
 impl NVMe {
     const fn null() -> Self {
         Self {
-            addr: 0,
+            pcie_addr: 0,
+            base: 0,
             msi_x: 0,
             dstrd: 0,
+            admin: Queue::null(),
         }
+    }
+
+    fn init(&mut self) -> Result<(), crate::Error> {
+        if self.pcie_addr == 0 {
+            return Err(Error::InvalidAddress.into());
+        }
+
+        let pcie = crate::drivers::pcie::Type0::get_ref(self.pcie_addr);
+        self.base = pcie.bar(0)?;
+
+        Register::CC.write(0);
+        while (Register::CSTS.read() & 0b1) == 1 {
+            spin_loop();
+        }
+
+        self.dstrd = ((Register::CAP.read() >> 32) & 0xF) as u8;
+
+        let admin_size = command::admin::ENTRY_COUNT;
+        let (asq, acq) = self.admin.init(admin_size, admin_size)?;
+        Register::AQA.write(((admin_size as u64 - 1) << 16) | (admin_size as u64 - 1));
+        Register::ASQ.write(asq);
+        Register::ACQ.write(acq);
+        Register::CC.write({
+            let cap = Register::CAP.read();
+            1 | ({
+                let css = ((cap >> 37) & 0xFF) as u8;
+                if css & 0b1000_0000 != 0 {
+                    0b111
+                } else if css & 0b100_0000 != 0 {
+                    0b110
+                } else if css & 0b1 != 0 {
+                    0b000
+                } else {
+                    return Err(Error::InvalidRegisterValue("CAP.CSS").into());
+                }
+            } << 4)
+                | ({
+                    if (((cap >> 48) & 0xF)..=((cap >> 52) & 0xF)).contains(&0) {
+                        0x0
+                    } else {
+                        return Err(Error::InvalidRegisterValue("CAP.MPSMIN & CAP.MPSMAX").into());
+                    }
+                } << 7)
+                | ({
+                    let ams = ((cap >> 17) & 0b11) as u8;
+                    if ams & 0b1 != 0 {
+                        0b001
+                    } else if ams & 0b10 != 0 {
+                        0b111
+                    } else {
+                        0b000
+                    }
+                } << 11)
+        });
+        while (Register::CSTS.read() & 0b1) == 0 {
+            spin_loop();
+        }
+
+        Register::INTMC.write(0xFFFFFFFF);
+
+        let mut submission = command::Submission::identify_controller()?;
+        let completion = self.admin.submit(&mut submission).poll();
+        if completion.sct() == 0 && completion.sc() == 0 {
+            (submission.dptr() as u64).output();
+        }
+
+        Ok(())
     }
 }
 
@@ -334,7 +405,15 @@ impl Register {
     }
 
     fn addr(self) -> u64 {
-        unsafe { NVME.addr + self as u64 }
+        unsafe { NVME.base + self as u64 }
+    }
+
+    fn sqdb(id: u16) -> u64 {
+        Self::DOORBELL.addr() + (2 * id as u64) * (1 << (2 + unsafe { NVME.dstrd }))
+    }
+
+    fn cqdb(id: u16) -> u64 {
+        Self::DOORBELL.addr() + (2 * id as u64 + 1) * (1 << (2 + unsafe { NVME.dstrd }))
     }
 
     fn read(self) -> u64 {
@@ -358,72 +437,6 @@ impl Register {
     }
 }
 
-pub fn disable() -> Result<(), Error> {
-    if unsafe { NVME.addr == 0 } {
-        return Err(Error::InvalidAddress);
-    }
-
-    Register::CC.write(0);
-    while (Register::CSTS.read() & 0b1) == 1 {
-        spin_loop();
-    }
-
-    Ok(())
-}
-
 pub fn init() -> Result<(), crate::Error> {
-    unsafe { NVME.dstrd = ((Register::CAP.read() >> 32) & 0xF) as u8 };
-
-    let (asq, acq) = command::admin::init()?;
-
-    Register::AQA.write(
-        ((command::admin::ENTRY_COUNT as u64 - 1) << 16) | (command::admin::ENTRY_COUNT as u64 - 1),
-    );
-    Register::ASQ.write(asq);
-    Register::ACQ.write(acq);
-    Register::CC.write({
-        let cap = Register::CAP.read();
-        1 | ({
-            let css = ((cap >> 37) & 0xFF) as u8;
-            if css & 0b1000_0000 != 0 {
-                0b111
-            } else if css & 0b100_0000 != 0 {
-                0b110
-            } else if css & 0b1 != 0 {
-                0b000
-            } else {
-                return Err(Error::InvalidRegisterValue.into());
-            }
-        } << 4)
-            | ({
-                if (((cap >> 48) & 0xF)..=((cap >> 52) & 0xF)).contains(&0) {
-                    0x0
-                } else {
-                    return Err(Error::InvalidRegisterValue.into());
-                }
-            } << 7)
-            | ({
-                let ams = ((cap >> 17) & 0b11) as u8;
-                if ams & 0b1 != 0 {
-                    0b001
-                } else if ams & 0b10 != 0 {
-                    0b111
-                } else {
-                    0b000
-                }
-            } << 11)
-    });
-    while (Register::CSTS.read() & 0b1) == 0 {
-        spin_loop();
-    }
-
-    Register::INTMC.write(0xFFFFFFFF);
-
-    let mut submission = command::Submission::identify_controller()?;
-    let completion = command::admin::execute(&mut submission);
-    if completion.sct() == 0 && completion.sc() == 0 {
-        (submission.dptr() as u64).output();
-    }
-
-    Ok(())
+    unsafe { (*(&raw mut NVME)).init() }
 }
