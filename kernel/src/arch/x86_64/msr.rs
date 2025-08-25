@@ -3,11 +3,11 @@
 use core::arch::asm;
 
 /// - Bits 0 ..= 7: Reserved
-/// - Bit 8: BSP Flag (R/W)
+/// - Bit 8: BSP Flag
 /// - Bit 9: Reserved
 /// - Bit 10: Enable x2APIC mode
-/// - Bit 11: APIC Global Enable (R/W)
-/// - Bits 12 ..= (MAXPHYADDR -1): APIC Base (R/W)
+/// - Bit 11: APIC Global Enable
+/// - Bits 12 ..= (MAXPHYADDR -1): APIC Base
 /// - Bits MAXPHYADDR ..= 63: Reserved
 pub const IA32_APIC_BASE: u32 = 0x1B;
 

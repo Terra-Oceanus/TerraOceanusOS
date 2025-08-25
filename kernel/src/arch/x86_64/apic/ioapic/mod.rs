@@ -52,8 +52,8 @@ enum Register {
 
     /// Read/Write
     /// Redirection Table
-    /// - Bits 0 ..= 7: Interrupt Vector (R/W)
-    /// - Bits 8 ..= 10: Delivery Mode (R/W)
+    /// - Bits 0 ..= 7: Interrupt Vector
+    /// - Bits 8 ..= 10: Delivery Mode
     ///   - 000: Fixed
     ///   - 001: Lowest Priority
     ///   - 010: SMI
@@ -62,24 +62,24 @@ enum Register {
     ///   - 101: INIT
     ///   - 110: Reserved
     ///   - 111: ExtINT
-    /// - Bit 11: Destination Mode (R/W)
+    /// - Bit 11: Destination Mode
     ///   - 0: Physical Mode
     ///   - 1: Logical Mode
-    /// - Bit 12: Delivery Status (RO)
+    /// - Bit 12: Delivery Status
     ///   - 0: IDLE
     ///   - 1: Send Pending
-    /// - Bit 13: Interrupt Input Pin Polarity (R/W)
+    /// - Bit 13: Interrupt Input Pin Polarity
     ///   - 0: High active
     ///   - 1: Low active
-    /// - Bit 14: Remote IRR (RO)
-    /// - Bit 15: Trigger Mode (R/W)
+    /// - Bit 14: Remote IRR
+    /// - Bit 15: Trigger Mode
     ///   - 0: Edge sensitive
     ///   - 1: Level sensitive
-    /// - Bit 16: Interrupt Mask (R/W)
+    /// - Bit 16: Interrupt Mask
     ///   - 0: Not masked
     ///   - 1: Masked
     /// - Bits 17 ..= 55: Reserved
-    /// - Bits 56 ..= 63: Destination Field (R/W)
+    /// - Bits 56 ..= 63: Destination Field
     ///   - Physical: APIC ID
     ///   - Logical: Set of processors
     RedirectionTableEntry = 0x10,

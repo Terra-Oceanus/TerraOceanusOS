@@ -215,6 +215,7 @@ pub fn init() {
             GateDescriptor::interrupt(interrupt!(control_protection_exception) as u64);
         IDT[Interrupt::Timer as usize] = GateDescriptor::interrupt(interrupt!(timer) as u64);
         IDT[Interrupt::Keyboard as usize] = GateDescriptor::interrupt(interrupt!(keyboard) as u64);
+        IDT[Interrupt::NVMe as usize] = GateDescriptor::interrupt(interrupt!(nvme) as u64);
 
         asm!(
             "lidt [{}]",

@@ -37,4 +37,13 @@ impl Queue {
             self.completion.init(self.id, completion_size)?,
         ))
     }
+
+    pub fn submit(&mut self, cmd: &mut super::command::Submission) -> &mut Self {
+        self.submission.enqueue(cmd);
+        self
+    }
+
+    pub fn poll(&mut self) -> &'static super::command::Completion {
+        self.completion.dequeue()
+    }
 }
