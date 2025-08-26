@@ -2,7 +2,8 @@
 
 pub enum Error {
     InvalidAddress,
-    InvalidRegisterValue,
+    InvalidCapability,
+    InvalidRegisterValue(&'static str),
 }
 impl From<Error> for super::super::Error {
     fn from(err: Error) -> Self {
@@ -24,7 +25,12 @@ impl crate::Output for Error {
         "NVMe ".output();
         match self {
             Error::InvalidAddress => "Invalid Address",
-            Error::InvalidRegisterValue => "Invalid Register Value",
+            Error::InvalidRegisterValue(reg) => {
+                "Invalid ".output();
+                reg.output();
+                " Value"
+            }
+            Error::InvalidCapability => "Invalid Capability",
         }
         .output();
     }

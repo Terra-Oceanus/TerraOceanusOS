@@ -1,58 +1,70 @@
 //! Standard Header
 
-use crate::traits::FromAddr;
+use crate::{drivers::storage::nvme, traits::FromAddr};
 
-use super::{super::storage::nvme, Header};
+use super::Header;
 
-#[repr(C, packed)]
-struct Type0 {
-    header: Header,
+#[macro_export]
+macro_rules! find_capabilities {
+    ($base:expr, $first:expr $(, $id:expr => $ptr:expr )+ $(,)?) => {{
+        let mut offset = $first;
+        while offset != 0 {
+            let header = crate::drivers::pcie::capabilities::Header::get_ref($base + offset);
+            $(
+                if header.id() == $id {
+                    *$ptr = header as *const _ as u64;
+                }
+            )+
+            offset = header.next();
+        }
+    }};
+}
 
-    /// Base Address Register
-    /// - Memory Space
-    ///   - Bit 0: 0
-    ///   - Bits 1 ..= 2: Type
-    ///     - 0b00: 32-bits
-    ///     - 0b01: Reserved
-    ///     - 0b10: 64-bits
-    ///   - Bit 3: Prefetchable
-    ///   - Bits 4 ..= 31: 16-Byte Aligned Base Address
-    /// - I/O Space
-    ///   - Bit 0: 1
-    ///   - Bit 1: Reserved
-    ///   - Bits 2 ..= 31: 4-Byte Aligned Base Address
-    bar: [u32; 6],
+#[repr(C)]
+pub struct Type0 {
+    pub header: Header,
 
-    p_cardbus_cis: u32,
+    bar: [super::BAR; 6],
 
-    subsystem_id: u16,
+    reserved0: u32,
+
     subsystem_vendor_id: u16,
+    subsystem_id: u16,
 
+    /// - Bit 0: Expansion ROM Enable
+    /// - Bits 1 ..= 3: Expansion ROM Validation Status
+    ///   - 0b000: Validation not supported
+    ///   - 0b001: Validation in Progress
+    ///   - 0b010: Validation Pass Valid contents, trust test was not performed
+    ///   - 0b011: Validation Pass Valid and trusted contents
+    ///   - 0b100: Validation Fail Invalid contents
+    ///   - 0b101: Validation Fail Valid but untrusted contents
+    ///   - 0b110: Warning Pass Validation Passed with implementation specific warning. Valid contents, trust test was not performed
+    ///   - 0b111: Warning Pass Validation Passed with implementation specific warning. Valid and trusted contents
+    /// - Bits 4 ..= 7: Expansion ROM Validation Details
+    /// - Bits 8 ..= 10: Reserved
+    /// - Bits 11 ..= 31: Expansion ROM Base Address
     expansion_rom_base_address: u32,
 
     p_capabilities: u8,
 
-    reserved0: [u8; 7],
+    reserved1: [u8; 7],
 
     interrupt_line: u8,
     interrupt_pin: u8,
 
-    reserved1: u16,
+    reserved2: u16,
 }
 impl FromAddr for Type0 {}
 impl Type0 {
-    fn handle(&self) {
-        match self.header.class {
+    pub fn handle(&self) {
+        match self.header.class_code[2] {
             // Mass Storage Controller
-            0x01 => match self.header.subclass {
+            0x01 => match self.header.class_code[1] {
                 // Non-Volatile Memory Controller
-                0x08 => match self.header.programming_interface {
+                0x08 => match self.header.class_code[0] {
                     // NVM Express
-                    0x02 => {
-                        nvme::set_config(
-                            ((self.bar[1] as u64) << 32) | (self.bar[0] & 0xFFFFFFF0) as u64,
-                        );
-                    }
+                    0x02 => nvme::set_config(self as *const Self as u64),
                     _ => {}
                 },
                 _ => {}
@@ -60,8 +72,17 @@ impl Type0 {
             _ => {}
         }
     }
-}
 
-pub fn handle(addr: u64) {
-    Type0::get_ref(addr).handle();
+    pub fn bar(&self, index: usize) -> u64 {
+        let bar = &self.bar[index];
+        (if bar.is_memory() && bar.is_64bit() {
+            (self.bar[index + 1].0 as u64) << 32
+        } else {
+            0
+        }) | bar.addr()
+    }
+
+    pub fn p_capabilities(&self) -> u64 {
+        self.p_capabilities as u64
+    }
 }
