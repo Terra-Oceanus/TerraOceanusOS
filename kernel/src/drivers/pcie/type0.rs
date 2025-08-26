@@ -4,6 +4,22 @@ use crate::{drivers::storage::nvme, traits::FromAddr};
 
 use super::Header;
 
+#[macro_export]
+macro_rules! find_capabilities {
+    ($base:expr, $first:expr $(, $id:expr => $ptr:expr )+ $(,)?) => {{
+        let mut offset = $first;
+        while offset != 0 {
+            let header = crate::drivers::pcie::capabilities::Header::get_ref($base + offset);
+            $(
+                if header.id() == $id {
+                    *$ptr = header as *const _ as u64;
+                }
+            )+
+            offset = header.next();
+        }
+    }};
+}
+
 #[repr(C)]
 pub struct Type0 {
     header: Header,
@@ -68,5 +84,9 @@ impl Type0 {
         } else {
             0
         }) | bar.addr())
+    }
+
+    pub fn p_capabilities(&self) -> u64 {
+        self.p_capabilities as u64
     }
 }
