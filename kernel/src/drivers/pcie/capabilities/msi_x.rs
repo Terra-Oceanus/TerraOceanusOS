@@ -1,18 +1,20 @@
 //! MSI-X
 
-use core::ptr::{read_volatile, write_volatile};
+use core::ptr;
 
-use super::super::{BAR, Error};
+pub struct MSIX {
+    pub addr: u64,
 
-pub const CAPABILITY_ID: u8 = 0x11;
+    tables: *mut Table,
+}
+impl MSIX {
+    pub const ID: u8 = 0x11;
 
-#[repr(u8)]
-pub enum Capability {
     /// - Bits 0 ..= 10: Table Size
     /// - Bits 11 ..= 13: Reserved
     /// - Bit 14: Function Mask
     /// - Bit 15: MSI-X Enable
-    MessageControl = 0x2,
+    const MESSAGE_CONTROL: u64 = 0x02;
 
     /// - Bits 0 ..= 2: Table BIR
     ///   - 0: Base Address Register 0x10
@@ -23,58 +25,43 @@ pub enum Capability {
     ///   - 5: Base Address Register 0x24
     ///   - 6 ..= 7: Reserved
     /// - Bits 3 ..= 31: Table Offset
-    Table = 0x4,
+    const TABLE: u64 = 0x04;
 
     /// - Bits 0 ..= 2: PBA BIR
     /// - Bits 3 ..= 31: PBA Offset
-    PBA = 0x8,
-}
-impl Capability {
-    fn read(self, addr: u64) -> u32 {
-        unsafe {
-            match self {
-                Capability::MessageControl => {
-                    read_volatile((addr + self as u64) as *const u16) as u32
-                }
-                Capability::Table | Capability::PBA => {
-                    read_volatile((addr + self as u64) as *const u32)
-                }
-            }
+    const PBA: u64 = 0x08;
+
+    pub const fn null() -> Self {
+        Self {
+            addr: 0,
+            tables: ptr::null_mut(),
         }
     }
 
-    fn write(self, addr: u64, value: u32) {
-        unsafe {
-            match self {
-                Capability::MessageControl => {
-                    write_volatile((addr + self as u64) as *mut u16, value as u16)
-                }
-                Capability::Table | Capability::PBA => {
-                    write_volatile((addr + self as u64) as *mut u32, value)
-                }
-            }
-        }
+    pub fn disable(&self) {
+        let mc = (self.addr + Self::MESSAGE_CONTROL) as *mut u16;
+        unsafe { mc.write_volatile(mc.read_volatile() & !(1 << 15)) };
     }
 
-    pub fn configure(addr: u64, base: u64, vector: u8) -> Result<(), Error> {
-        Capability::MessageControl.write(addr, Capability::MessageControl.read(addr) | 1 << 15);
+    pub fn enable(&self) {
+        let mc = (self.addr + Self::MESSAGE_CONTROL) as *mut u16;
+        unsafe { mc.write_volatile(mc.read_volatile() | 1 << 15) };
+    }
 
-        let table = Capability::Table.read(addr);
-        let bir: u64 = (table & 0b111) as u64;
-        let bar = unsafe { read_volatile((base + (0x10 + bir * 0x4)) as *const BAR) };
-        if !bar.is_memory() {
-            return Err(Error::Unsupported);
-        }
+    pub fn table_bir(&self) -> usize {
+        (unsafe { ((self.addr + Self::TABLE) as *mut u32).read_volatile() } & 0b111) as usize
+    }
+
+    pub fn set_tables(&mut self, addr: u64) {
+        self.tables = addr as *mut Table;
+    }
+
+    pub fn configure(&self, table_index: usize, vector: u8) {
         unsafe {
-            (((if bar.is_64bit() {
-                (read_volatile((base + (0x10 + (bir + 1) * 0x4)) as *const u32) as u64) << 32
-            } else {
-                0
-            } | bar.addr())
-                + (table >> 3) as u64) as *mut Table)
+            self.tables
+                .add(table_index)
                 .write_volatile(Table::new(vector))
-        };
-        Ok(())
+        }
     }
 }
 
