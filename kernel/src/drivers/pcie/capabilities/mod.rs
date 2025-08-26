@@ -4,7 +4,9 @@ use crate::traits::FromAddr;
 
 mod capability;
 pub mod extended;
-pub mod msi_x;
+mod msi_x;
+
+pub use msi_x::MSIX;
 
 #[repr(C)]
 pub struct Header {

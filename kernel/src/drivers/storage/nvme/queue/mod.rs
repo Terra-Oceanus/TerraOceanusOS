@@ -25,6 +25,8 @@ impl Queue {
 
     pub fn init(
         &mut self,
+        doorbell_base: u64,
+        dstrd: u8,
         submission_size: u16,
         completion_size: u16,
     ) -> Result<(u64, u64), crate::Error> {
@@ -33,8 +35,14 @@ impl Queue {
             ID_COUNTER += 1;
         };
         Ok((
-            self.submission.init(self.id, submission_size)?,
-            self.completion.init(self.id, completion_size)?,
+            self.submission.init(
+                submission_size,
+                doorbell_base + (2 * self.id as u64) * (1 << (2 + dstrd)),
+            )?,
+            self.completion.init(
+                completion_size,
+                doorbell_base + (2 * self.id as u64 + 1) * (1 << (2 + dstrd)),
+            )?,
         ))
     }
 

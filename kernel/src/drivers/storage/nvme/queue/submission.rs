@@ -26,10 +26,10 @@ impl Submission {
         }
     }
 
-    pub fn init(&mut self, id: u16, size: u16) -> Result<u64, crate::Error> {
+    pub fn init(&mut self, size: u16, doorbell: u64) -> Result<u64, crate::Error> {
         self.addr = allocate(size as u64 * ENTRY_SIZE as u64)?;
         self.size = size;
-        self.doorbell = super::super::Register::sqdb(id) as *mut u32;
+        self.doorbell = doorbell as *mut u32;
         Ok(self.addr)
     }
 
