@@ -1,12 +1,6 @@
 //! Interrupts
 
-use crate::{
-    Output,
-    io::{
-        port,
-        text::{Cursor, keyboard},
-    },
-};
+use crate::Output;
 
 use super::super::super::apic::lapic::eoi;
 
@@ -225,6 +219,7 @@ pub fn control_protection_exception() {
 
 static mut TICK: usize = 0;
 pub fn timer() {
+    use crate::io::text::Cursor;
     unsafe {
         TICK += 1;
         if TICK == 50 {
@@ -238,6 +233,11 @@ pub fn timer() {
 }
 
 pub fn keyboard() {
-    keyboard::input(port::in_byte(port::PS2_DATA));
+    use crate::io::port;
+    crate::io::text::keyboard::input(port::in_byte(port::PS2_DATA));
+    eoi();
+}
+
+pub fn nvme() {
     eoi();
 }
