@@ -2,10 +2,13 @@
 
 use core::ptr;
 
+use super::super::Error;
+
 pub struct MSIX {
     pub addr: u64,
 
     tables: *mut Table,
+    table_count: usize,
 }
 impl MSIX {
     pub const ID: u8 = 0x11;
@@ -35,6 +38,7 @@ impl MSIX {
         Self {
             addr: 0,
             tables: ptr::null_mut(),
+            table_count: 0,
         }
     }
 
@@ -45,23 +49,35 @@ impl MSIX {
 
     pub fn enable(&self) {
         let mc = (self.addr + Self::MESSAGE_CONTROL) as *mut u16;
-        unsafe { mc.write_volatile(mc.read_volatile() | 1 << 15) };
+        unsafe { mc.write_volatile((mc.read_volatile() & !(1 << 14)) | (1 << 15)) };
     }
 
-    pub fn table_bir(&self) -> usize {
-        (unsafe { ((self.addr + Self::TABLE) as *mut u32).read_volatile() } & 0b111) as usize
+    pub fn table_bir(&self) -> Result<usize, Error> {
+        match unsafe { ((self.addr + Self::TABLE) as *mut u32).read_volatile() } & 0b111 {
+            n if (0..=5).contains(&n) => Ok(n as usize),
+            _ => Err(Error::InvalidRegisterValue("Table BIR")),
+        }
     }
 
     pub fn set_tables(&mut self, addr: u64) {
-        self.tables = addr as *mut Table;
+        self.tables = (addr
+            + (unsafe { ((self.addr + Self::TABLE) as *mut u32).read_volatile() } & !0b111) as u64)
+            as *mut Table;
+        self.table_count =
+            (unsafe { ((self.addr + Self::MESSAGE_CONTROL) as *mut u16).read_volatile() }
+                & 0b111_1111_1111) as usize;
     }
 
-    pub fn configure(&self, table_index: usize, vector: u8) {
+    pub fn configure(&self, table_index: usize, vector: u8) -> Result<(), Error> {
+        if table_index > self.table_count {
+            return Err(Error::InvalidIndex("MSI-X Table"));
+        }
         unsafe {
             self.tables
                 .add(table_index)
                 .write_volatile(Table::new(vector))
         }
+        Ok(())
     }
 }
 

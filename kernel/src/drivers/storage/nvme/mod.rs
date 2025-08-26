@@ -1,9 +1,6 @@
 //! Non-Volatile Memory Express
 
-use core::{
-    hint::spin_loop,
-    ptr::{read_volatile, write_volatile},
-};
+use core::hint::spin_loop;
 
 use crate::{
     drivers::pcie::{self, capabilities::MSIX},
@@ -340,22 +337,19 @@ impl NVMe {
     fn read(&self, offset: u64) -> u64 {
         unsafe {
             if Self::is_u64_register(offset) {
-                read_volatile((self.addr + offset) as *const u64)
+                ((self.addr + offset) as *const u64).read_volatile()
             } else {
-                read_volatile((self.addr + offset) as *const u32) as u64
+                ((self.addr + offset) as *const u32).read_volatile().into()
             }
         }
     }
 
-    fn write(&self, offset: u64, value: u64) {
+    fn write(&self, offset: u64, val: u64) {
         unsafe {
             if Self::is_u64_register(offset) {
-                write_volatile((self.addr + offset) as *mut u64, value);
+                ((self.addr + offset) as *mut u64).write_volatile(val)
             } else {
-                write_volatile(
-                    (self.addr + offset) as *mut u32,
-                    (value & 0xFFFFFFFF) as u32,
-                );
+                ((self.addr + offset) as *mut u32).write_volatile(val as u32)
             }
         }
     }
@@ -364,9 +358,12 @@ impl NVMe {
         if self.pcie_addr == 0 {
             return Err(Error::InvalidAddress.into());
         }
+        let pcie = pcie::Type0::get_mut(self.pcie_addr);
+        pcie.header.set_memory_space(true);
+        pcie.header.set_bus_master(true);
+        pcie.header.set_interrupt(false);
 
-        let pcie = pcie::Type0::get_ref(self.pcie_addr);
-        self.addr = pcie.bar(0)?;
+        self.addr = pcie.bar(0);
         find_capabilities!(self.pcie_addr, pcie.p_capabilities(),
             MSIX::ID => &mut self.msi_x.addr,
         );
@@ -374,6 +371,19 @@ impl NVMe {
         self.write(Self::CC, 0);
         while (self.read(Self::CSTS) & 0b1) == 1 {
             spin_loop();
+        }
+
+        // MSI-X
+        {
+            if self.msi_x.addr == 0 {
+                return Err(Error::InvalidAddress.into());
+            }
+            self.msi_x.disable();
+            self.msi_x.set_tables(pcie.bar(self.msi_x.table_bir()?));
+            self.msi_x
+                .configure(0, crate::x86_64::idt::Interrupt::NVMe as u8)?;
+            self.write(Self::INTMC, 0xFFFFFFFF);
+            self.msi_x.enable();
         }
 
         self.dstrd = ((self.read(Self::CAP) >> 32) & 0xF) as u8;
@@ -425,19 +435,6 @@ impl NVMe {
         });
         while (self.read(Self::CSTS) & 0b1) == 0 {
             spin_loop();
-        }
-        
-        // MSI-X
-        {
-            if self.msi_x.addr == 0 {
-                return Err(Error::InvalidAddress.into());
-            }
-            self.msi_x.disable();
-            self.msi_x.set_tables(pcie.bar(self.msi_x.table_bir())?);
-            self.msi_x
-                .configure(0, crate::x86_64::idt::Interrupt::NVMe as u8);
-            self.write(Self::INTMC, 0xFFFFFFFF);
-            self.msi_x.enable();
         }
 
         let mut submission = command::Submission::identify_controller()?;

@@ -22,7 +22,7 @@ macro_rules! find_capabilities {
 
 #[repr(C)]
 pub struct Type0 {
-    header: Header,
+    pub header: Header,
 
     bar: [super::BAR; 6],
 
@@ -73,17 +73,13 @@ impl Type0 {
         }
     }
 
-    pub fn bar(&self, index: usize) -> Result<u64, super::Error> {
+    pub fn bar(&self, index: usize) -> u64 {
         let bar = &self.bar[index];
-        if !bar.is_memory() {
-            return Err(super::Error::Unsupported);
-        }
-
-        Ok((if bar.is_64bit() {
+        (if bar.is_memory() && bar.is_64bit() {
             (self.bar[index + 1].0 as u64) << 32
         } else {
             0
-        }) | bar.addr())
+        }) | bar.addr()
     }
 
     pub fn p_capabilities(&self) -> u64 {

@@ -84,6 +84,30 @@ impl Header {
             _ => Err(Error::InvalidHeaderType.into()),
         }
     }
+
+    pub fn set_memory_space(&mut self, enable: bool) {
+        if enable {
+            self.command |= 1 << 1;
+        } else {
+            self.command &= !(1 << 1);
+        }
+    }
+
+    pub fn set_bus_master(&mut self, enable: bool) {
+        if enable {
+            self.command |= 1 << 2;
+        } else {
+            self.command &= !(1 << 2);
+        }
+    }
+
+    pub fn set_interrupt(&mut self, enable: bool) {
+        if enable {
+            self.command &= !(1 << 10);
+        } else {
+            self.command |= 1 << 10;
+        }
+    }
 }
 
 /// Base Address Register
