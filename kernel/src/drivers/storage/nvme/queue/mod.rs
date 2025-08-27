@@ -46,7 +46,7 @@ impl Queue {
         ))
     }
 
-    pub fn submit(&mut self, cmd: &mut super::command::Submission) -> &mut Self {
+    pub fn submit(&mut self, cmd: &super::command::Submission) -> &mut Self {
         self.submission.enqueue(cmd);
         self
     }

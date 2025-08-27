@@ -1,10 +1,10 @@
-//! Identify Controller
+//! Identify Controller Data Structure
 
-use crate::traits::FromAddr;
+use crate::Memory;
 
 impl super::super::super::Submission {
     /// - CNS: 0x01
-    pub fn identify_controller() -> Result<Self, crate::Error> {
+    pub fn identify_controller_data_structure() -> Result<Self, crate::Error> {
         let mut cmd = Self::identify()?;
         cmd.cdw10 = 0x01;
         Ok(cmd)
@@ -12,7 +12,7 @@ impl super::super::super::Submission {
 }
 
 #[repr(C, packed)]
-pub struct Data {
+struct Data {
     /// PCI Vendor ID
     vid: u16,
 
@@ -382,6 +382,8 @@ pub struct Data {
     maxcmd: u16,
 
     /// Number of Namespaces
+    ///
+    /// The maximum value of a valid NSID
     nn: u32,
 
     /// Optional NVM Command Support
@@ -536,9 +538,11 @@ pub struct Data {
     /// Vendor Specific
     vs: [u8; 1024],
 }
-impl FromAddr for Data {}
+impl Memory for Data {}
 impl Data {
-    pub fn handle(&self) {}
+    fn handle(&self) -> &Self {
+        self
+    }
 }
 
 #[repr(C)]
@@ -639,4 +643,9 @@ struct PowerStateDescriptorData {
     ///   - 0xD ..= 0xF: Reserved
     /// - Bits 28 ..= 63: Reserved
     qword3: u64,
+}
+
+pub fn handle(addr: u64) -> Result<(), crate::Error> {
+    Data::get_ref(addr).handle().delete()?;
+    Ok(())
 }
