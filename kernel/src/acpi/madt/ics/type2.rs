@@ -36,6 +36,6 @@ impl Type2 {
     }
 }
 
-pub fn handle(addr: u64) -> Result<(), crate::Error> {
+pub fn handle(addr: usize) -> Result<(), crate::Error> {
     Type2::get_ref(addr).handle()
 }

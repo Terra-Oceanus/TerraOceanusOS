@@ -20,7 +20,7 @@ impl Header {
         self.capability_id
     }
 
-    pub fn next(&self) -> u64 {
-        self.next_capability_pointer as u64
+    pub fn next(&self) -> usize {
+        self.next_capability_pointer as usize
     }
 }

@@ -12,15 +12,15 @@ pub fn init(entry: usize, descriptor_size: usize, descriptor_count: usize) -> Re
 }
 
 pub trait Memory: Sized {
-    fn get_ref(addr: u64) -> &'static Self {
+    fn get_ref(addr: usize) -> &'static Self {
         unsafe { &*(addr as *const _) }
     }
 
-    fn get_mut(addr: u64) -> &'static mut Self {
+    fn get_mut(addr: usize) -> &'static mut Self {
         unsafe { &mut *(addr as *mut _) }
     }
 
     fn delete(&self) -> Result<(), Error> {
-        physical::deallocate(self as *const _ as u64)
+        physical::deallocate(self as *const _ as usize)
     }
 }

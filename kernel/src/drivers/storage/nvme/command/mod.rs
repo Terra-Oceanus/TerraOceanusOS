@@ -85,8 +85,8 @@ impl Submission {
         }
     }
 
-    pub fn prp1(&self) -> u64 {
-        self.dptr as u64
+    pub fn prp1(&self) -> usize {
+        self.dptr as usize
     }
 }
 

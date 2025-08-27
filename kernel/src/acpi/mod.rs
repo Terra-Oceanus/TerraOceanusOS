@@ -25,7 +25,7 @@ trait Checksum {
     }
 }
 
-pub fn init(rsdp_addr: u64) -> Result<(), Error> {
+pub fn init(rsdp_addr: usize) -> Result<(), Error> {
     let xsdt_addr = rsdp::init(rsdp_addr)?;
     xsdt::init(xsdt_addr)?;
     fadt::init()

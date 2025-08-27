@@ -10,9 +10,9 @@ mod ics;
 
 pub const SIGNATURE: &[u8; 4] = b"APIC";
 
-static mut ADDR: u64 = 0;
+static mut ADDR: usize = 0;
 
-pub fn set_config(addr: u64) {
+pub fn set_config(addr: usize) {
     unsafe { ADDR = addr }
 }
 
@@ -46,10 +46,10 @@ impl MADT {
                 let entry = structures.add(offset);
                 let header = read_unaligned(entry as *const ics::Header);
                 match header.type_ {
-                    0 => ics::type0::handle(entry as u64)?,
-                    1 => ics::type1::handle(entry as u64)?,
-                    2 => ics::type2::handle(entry as u64)?,
-                    4 => ics::type4::handle(entry as u64)?,
+                    0 => ics::type0::handle(entry as usize)?,
+                    1 => ics::type1::handle(entry as usize)?,
+                    2 => ics::type2::handle(entry as usize)?,
+                    4 => ics::type4::handle(entry as usize)?,
                     _ => {}
                 }
                 offset += header.length as usize;

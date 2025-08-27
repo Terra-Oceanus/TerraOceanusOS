@@ -4,7 +4,7 @@ use crate::Memory;
 
 use super::{Checksum, Error};
 
-static mut ADDR: u64 = 0;
+static mut ADDR: usize = 0;
 
 #[repr(C, packed)]
 struct RSDP1_0 {
@@ -54,7 +54,7 @@ struct RSDP {
 impl Memory for RSDP {}
 impl Checksum for RSDP {}
 impl RSDP {
-    fn init(&self) -> Result<u64, Error> {
+    fn init(&self) -> Result<usize, Error> {
         self.rsdp1_0.init()?;
         if self.length != size_of::<Self>() as u32 {
             return Err(Error::InvalidLength);
@@ -62,11 +62,11 @@ impl RSDP {
         if !self.checksum(self.length as usize) {
             return Err(Error::InvalidChecksum);
         }
-        Ok(self.xsdt_address)
+        Ok(self.xsdt_address as usize)
     }
 }
 
-pub fn init(addr: u64) -> Result<u64, Error> {
+pub fn init(addr: usize) -> Result<usize, Error> {
     if addr == 0 {
         return Err(Error::InvalidAddress);
     }

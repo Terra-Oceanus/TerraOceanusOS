@@ -9,7 +9,7 @@ use super::super::command::Submission as Command;
 const ENTRY_SIZE: usize = 64;
 
 pub struct Submission {
-    addr: u64,
+    addr: usize,
     size: u16,
 
     tail: u16,
@@ -26,8 +26,8 @@ impl Submission {
         }
     }
 
-    pub fn init(&mut self, size: u16, doorbell: u64) -> Result<u64, crate::Error> {
-        self.addr = allocate(size as u64 * ENTRY_SIZE as u64)?;
+    pub fn init(&mut self, size: u16, doorbell: usize) -> Result<usize, crate::Error> {
+        self.addr = allocate(size as usize * ENTRY_SIZE)?;
         self.size = size;
         self.doorbell = doorbell as *mut u32;
         Ok(self.addr)

@@ -36,11 +36,11 @@ fn panic(info: &PanicInfo) -> ! {
 
 #[unsafe(no_mangle)]
 pub extern "C" fn _start() -> ! {
-    let mut frame_buffer_base: u64;
+    let mut frame_buffer_base: usize;
     let mut width: usize;
     let mut height: usize;
     let mut stride: usize;
-    let mut rsdp_addr: u64;
+    let mut rsdp_addr: usize;
     let mut memory_map_entry: usize;
     let mut memory_descriptor_size: usize;
     let mut memory_descriptor_count: usize;
@@ -98,11 +98,11 @@ pub extern "C" fn _start() -> ! {
 }
 
 fn init(
-    frame_buffer_base: u64,
+    frame_buffer_base: usize,
     screen_width: usize,
     screen_height: usize,
     screen_stride: usize,
-    rsdp_addr: u64,
+    rsdp_addr: usize,
     memory_map_entry: usize,
     memory_descriptor_size: usize,
     memory_descriptor_count: usize,

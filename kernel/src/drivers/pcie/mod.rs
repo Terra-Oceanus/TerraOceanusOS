@@ -79,7 +79,7 @@ impl Header {
 
     pub fn handle(&self) -> Result<(), crate::Error> {
         match self.header_type & 0b01111111 {
-            0 => Ok(Type0::get_ref(self as *const Self as u64).handle()),
+            0 => Ok(Type0::get_ref(self as *const _ as usize).handle()),
             1 => Ok(()),
             _ => Err(Error::InvalidHeaderType.into()),
         }
@@ -134,12 +134,12 @@ impl BAR {
         (self.0 >> 1) & 0b11 == 0b10
     }
 
-    fn addr(&self) -> u64 {
+    fn addr(&self) -> usize {
         (if self.is_memory() {
             self.0 >> 4
         } else {
             self.0 >> 2
-        }) as u64
+        }) as usize
     }
 }
 

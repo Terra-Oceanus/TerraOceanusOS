@@ -27,6 +27,6 @@ impl Type0 {
     }
 }
 
-pub fn handle(addr: u64) -> Result<(), Error> {
+pub fn handle(addr: usize) -> Result<(), Error> {
     Type0::get_ref(addr).handle()
 }

@@ -20,7 +20,7 @@ impl Header {
         (self.info & 0xF) as u8
     }
 
-    pub fn next(&self) -> u64 {
-        (self.info >> 4) as u64
+    pub fn next(&self) -> usize {
+        (self.info >> 4) as usize
     }
 }

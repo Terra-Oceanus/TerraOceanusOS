@@ -12,7 +12,7 @@ use super::super::command::Completion as Command;
 const ENTRY_SIZE: usize = 16;
 
 pub struct Completion {
-    addr: u64,
+    addr: usize,
     size: u16,
 
     head: u16,
@@ -31,8 +31,8 @@ impl Completion {
         }
     }
 
-    pub fn init(&mut self, size: u16, doorbell: u64) -> Result<u64, crate::Error> {
-        self.addr = allocate(size as u64 * ENTRY_SIZE as u64)?;
+    pub fn init(&mut self, size: u16, doorbell: usize) -> Result<usize, crate::Error> {
+        self.addr = allocate(size as usize * ENTRY_SIZE)?;
         self.size = size;
         unsafe { write_bytes(self.addr as *mut Command, 0, self.size as usize) };
         self.doorbell = doorbell as *mut u32;
@@ -41,7 +41,7 @@ impl Completion {
 
     pub fn dequeue(&mut self) -> &'static Command {
         let command = loop {
-            let command = Command::get_ref(self.addr + (self.head as u64 * ENTRY_SIZE as u64));
+            let command = Command::get_ref(self.addr + (self.head as usize * ENTRY_SIZE));
             if command.phase() == self.phase {
                 break command;
             }

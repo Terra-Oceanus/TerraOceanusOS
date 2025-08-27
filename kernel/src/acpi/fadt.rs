@@ -6,9 +6,9 @@ use super::{Error, Header, dsdt, facs};
 
 pub const SIGNATURE: &[u8; 4] = b"FACP";
 
-static mut ADDR: u64 = 0;
+static mut ADDR: usize = 0;
 
-pub fn set_config(addr: u64) {
+pub fn set_config(addr: usize) {
     unsafe { ADDR = addr }
 }
 
@@ -323,12 +323,12 @@ impl FADT {
     fn init(&self) -> Result<(), Error> {
         self.header.init(*SIGNATURE)?;
         facs::set_config(match self.x_firmware_ctrl {
-            0 => self.firmware_ctrl as u64,
-            addr => addr,
+            0 => self.firmware_ctrl as usize,
+            addr => addr as usize,
         });
         dsdt::set_config(match self.x_dsdt {
-            0 => self.dsdt as u64,
-            addr => addr,
+            0 => self.dsdt as usize,
+            addr => addr as usize,
         });
         Ok(())
     }

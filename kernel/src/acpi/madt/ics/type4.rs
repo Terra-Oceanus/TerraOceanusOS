@@ -30,6 +30,6 @@ impl Type4 {
     }
 }
 
-pub fn handle(addr: u64) -> Result<(), Error> {
+pub fn handle(addr: usize) -> Result<(), Error> {
     Type4::get_ref(addr).handle()
 }

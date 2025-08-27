@@ -12,7 +12,7 @@ macro_rules! find_capabilities {
             let header = crate::drivers::pcie::capabilities::Header::get_ref($base + offset);
             $(
                 if header.id() == $id {
-                    *$ptr = header as *const _ as u64;
+                    *$ptr = header as *const _ as usize;
                 }
             )+
             offset = header.next();
@@ -64,7 +64,7 @@ impl Type0 {
                 // Non-Volatile Memory Controller
                 0x08 => match self.header.class_code[0] {
                     // NVM Express
-                    0x02 => nvme::set_config(self as *const Self as u64),
+                    0x02 => nvme::set_config(self as *const _ as usize),
                     _ => {}
                 },
                 _ => {}
@@ -73,16 +73,16 @@ impl Type0 {
         }
     }
 
-    pub fn bar(&self, index: usize) -> u64 {
+    pub fn bar(&self, index: usize) -> usize {
         let bar = &self.bar[index];
         (if bar.is_memory() && bar.is_64bit() {
-            (self.bar[index + 1].0 as u64) << 32
+            (self.bar[index + 1].0 as usize) << 32
         } else {
             0
         }) | bar.addr()
     }
 
-    pub fn p_capabilities(&self) -> u64 {
-        self.p_capabilities as u64
+    pub fn p_capabilities(&self) -> usize {
+        self.p_capabilities as usize
     }
 }
