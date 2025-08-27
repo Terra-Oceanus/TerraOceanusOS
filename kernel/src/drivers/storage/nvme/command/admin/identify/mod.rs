@@ -3,7 +3,8 @@
 use crate::memory::physical::allocate;
 
 pub mod active_namespace_id_list;
-pub mod controller_data_structure;
+pub mod controller;
+pub mod namespace;
 
 impl super::super::Submission {
     /// - Opcode: 0x06
