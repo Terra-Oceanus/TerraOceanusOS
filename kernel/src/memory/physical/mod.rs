@@ -55,23 +55,23 @@ pub fn init(entry: usize, descriptor_size: usize, descriptor_count: usize) -> Re
     let mut size = 0;
     for i in 0..descriptor_count {
         let descriptor = unsafe { &*((entry + i * descriptor_size) as *const Descriptor) };
-        let phys_end = descriptor.phys_start + PAGE_SIZE * descriptor.page_count;
+        let phys_end = descriptor.phys_start as usize + PAGE_SIZE * descriptor.page_count as usize;
         if phys_end > size {
             size = phys_end
         };
     }
     let pending_allocation_page_count =
         (BuddyAllocator::pre_init(size) + PAGE_SIZE - 1) / PAGE_SIZE;
-    let mut allocate_addr: u64 = 0;
+    let mut allocate_addr = 0;
     for i in 0..descriptor_count {
         let descriptor = unsafe { &*((entry + i * descriptor_size) as *const Descriptor) };
         if descriptor.type_ != 7 {
             continue;
         }
-        if descriptor.page_count < pending_allocation_page_count {
+        if (descriptor.page_count as usize) < pending_allocation_page_count {
             continue;
         }
-        allocate_addr = descriptor.phys_start;
+        allocate_addr = descriptor.phys_start as usize;
         break;
     }
     BuddyAllocator::init(allocate_addr);
@@ -80,24 +80,27 @@ pub fn init(entry: usize, descriptor_size: usize, descriptor_count: usize) -> Re
         if descriptor.type_ != 7 {
             continue;
         }
-        if descriptor.phys_start == allocate_addr
-            && descriptor.page_count > pending_allocation_page_count
+        if descriptor.phys_start as usize == allocate_addr
+            && descriptor.page_count as usize > pending_allocation_page_count
         {
             BuddyAllocator::add(
-                descriptor.phys_start + pending_allocation_page_count * PAGE_SIZE,
-                descriptor.page_count - pending_allocation_page_count,
+                descriptor.phys_start as usize + pending_allocation_page_count * PAGE_SIZE,
+                descriptor.page_count as usize - pending_allocation_page_count,
             )?;
         } else {
-            BuddyAllocator::add(descriptor.phys_start, descriptor.page_count)?;
+            BuddyAllocator::add(
+                descriptor.phys_start as usize,
+                descriptor.page_count as usize,
+            )?;
         }
     }
     Ok(())
 }
 
-pub fn allocate(size: u64) -> Result<u64, Error> {
+pub fn allocate(size: usize) -> Result<usize, Error> {
     BuddyAllocator::allocate(size)
 }
 
-pub fn deallocate(addr: u64) -> Result<(), Error> {
+pub fn deallocate(addr: usize) -> Result<(), Error> {
     BuddyAllocator::deallocate(addr)
 }
