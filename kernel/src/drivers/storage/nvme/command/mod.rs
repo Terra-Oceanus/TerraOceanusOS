@@ -1,6 +1,6 @@
 //! Command
 
-use crate::traits::FromAddr;
+use crate::Memory;
 
 pub mod admin;
 
@@ -117,7 +117,7 @@ pub struct Completion {
     ///   - Bit 14: DNR for Do Not Retry
     dw3: u32,
 }
-impl FromAddr for Completion {}
+impl Memory for Completion {}
 impl Completion {
     pub fn phase(&self) -> bool {
         ((self.dw3 >> 16) & 0b1) == 1

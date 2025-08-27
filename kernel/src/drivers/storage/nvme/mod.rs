@@ -3,9 +3,9 @@
 use core::hint::spin_loop;
 
 use crate::{
+    Memory,
     drivers::pcie::{self, capabilities::MSIX},
     find_capabilities,
-    traits::FromAddr,
 };
 
 mod command;

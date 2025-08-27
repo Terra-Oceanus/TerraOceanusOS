@@ -1,6 +1,6 @@
 //! Peripheral Component Interconnect Express
 
-use crate::{acpi::mcfg, traits::FromAddr};
+use crate::{Memory, acpi::mcfg};
 
 pub mod capabilities;
 pub mod error;
@@ -67,7 +67,7 @@ pub struct Header {
     /// - Bit 7: BIST Capable
     bist: u8,
 }
-impl FromAddr for Header {}
+impl Memory for Header {}
 impl Header {
     pub fn is_present(&self) -> bool {
         self.vendor_id != 0xFFFF

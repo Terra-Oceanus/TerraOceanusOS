@@ -1,6 +1,6 @@
 //! Processor Local APIC
 
-use crate::traits::FromAddr;
+use crate::Memory;
 
 use super::{super::Error, Header};
 
@@ -17,7 +17,7 @@ struct Type0 {
     /// - Bits 2 ..= 31: Reserved
     flags: u32,
 }
-impl FromAddr for Type0 {}
+impl Memory for Type0 {}
 impl Type0 {
     fn handle(&self) -> Result<(), Error> {
         if self.header.length as usize != size_of::<Self>() {

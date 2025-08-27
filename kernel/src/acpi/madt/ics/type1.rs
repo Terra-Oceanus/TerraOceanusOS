@@ -1,6 +1,6 @@
 //! I/O APIC
 
-use crate::{traits::FromAddr, x86_64::apic::ioapic};
+use crate::{Memory, x86_64::apic::ioapic};
 
 use super::{super::Error, Header};
 
@@ -16,7 +16,7 @@ struct Type1 {
 
     global_system_interrupt_base: u32,
 }
-impl FromAddr for Type1 {}
+impl Memory for Type1 {}
 impl Type1 {
     fn handle(&self) -> Result<(), crate::Error> {
         if self.header.length as usize != size_of::<Self>() {

@@ -2,7 +2,7 @@
 
 use core::ptr::{addr_of, read_unaligned};
 
-use crate::{io::port, traits::FromAddr};
+use crate::{Memory, io::port};
 
 use super::{Error, Header};
 
@@ -28,7 +28,7 @@ struct MADT {
 
     interrupt_controller_structures: [u8; 0],
 }
-impl FromAddr for MADT {}
+impl Memory for MADT {}
 impl MADT {
     fn init(&self) -> Result<u32, crate::Error> {
         self.header.init(*SIGNATURE)?;

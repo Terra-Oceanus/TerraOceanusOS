@@ -1,6 +1,6 @@
 //! Capability
 
-use crate::traits::FromAddr;
+use crate::Memory;
 
 mod capability;
 pub mod extended;
@@ -14,7 +14,7 @@ pub struct Header {
 
     next_capability_pointer: u8,
 }
-impl FromAddr for Header {}
+impl Memory for Header {}
 impl Header {
     pub fn id(&self) -> u8 {
         self.capability_id

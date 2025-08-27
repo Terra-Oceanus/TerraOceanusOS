@@ -1,6 +1,6 @@
 //! Firmware ACPI Control Structure
 
-use crate::traits::FromAddr;
+use crate::Memory;
 
 use super::{Error, Header};
 
@@ -16,7 +16,7 @@ pub fn set_config(addr: u64) {
 struct FACS {
     header: Header,
 }
-impl FromAddr for FACS {}
+impl Memory for FACS {}
 impl FACS {
     fn init(&self) -> Result<(), Error> {
         self.header.init(*SIGNATURE)

@@ -1,6 +1,6 @@
 //! Extended
 
-use crate::traits::FromAddr;
+use crate::Memory;
 
 #[repr(C)]
 pub struct Header {
@@ -10,7 +10,7 @@ pub struct Header {
     /// - Bits 4 ..= 15: Next Capability Offset
     info: u16,
 }
-impl FromAddr for Header {}
+impl Memory for Header {}
 impl Header {
     pub fn id(&self) -> u16 {
         self.extended_capability_id

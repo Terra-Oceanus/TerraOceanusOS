@@ -9,11 +9,11 @@ mod drivers;
 mod error;
 mod io;
 mod memory;
-mod traits;
 
 use arch::x86_64;
 use error::Error;
 use io::text::{Output, screen};
+use memory::Memory;
 
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {

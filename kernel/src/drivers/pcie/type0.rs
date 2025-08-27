@@ -1,6 +1,6 @@
 //! Standard Header
 
-use crate::{drivers::storage::nvme, traits::FromAddr};
+use crate::{Memory, drivers::storage::nvme};
 
 use super::Header;
 
@@ -55,7 +55,7 @@ pub struct Type0 {
 
     reserved2: u16,
 }
-impl FromAddr for Type0 {}
+impl Memory for Type0 {}
 impl Type0 {
     pub fn handle(&self) {
         match self.header.class_code[2] {

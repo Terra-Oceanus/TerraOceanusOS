@@ -2,7 +2,7 @@
 
 use core::slice;
 
-use crate::{drivers::pcie, traits::FromAddr};
+use crate::{Memory, drivers::pcie};
 
 use super::{Error, Header};
 
@@ -34,7 +34,7 @@ struct MCFG {
 
     structures: [AllocationStructure; 0],
 }
-impl FromAddr for MCFG {}
+impl Memory for MCFG {}
 impl MCFG {
     fn init(&self) -> Result<(), crate::Error> {
         self.header.init(*SIGNATURE)?;

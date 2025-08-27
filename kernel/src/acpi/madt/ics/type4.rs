@@ -2,7 +2,7 @@
 //!
 //! NMI stands for Non-Maskable Interrupt
 
-use crate::traits::FromAddr;
+use crate::Memory;
 
 use super::{super::Error, Header};
 
@@ -20,7 +20,7 @@ struct Type4 {
 
     local_apic_lint: u8,
 }
-impl FromAddr for Type4 {}
+impl Memory for Type4 {}
 impl Type4 {
     fn handle(&self) -> Result<(), Error> {
         if self.header.length as usize != size_of::<Self>() {
