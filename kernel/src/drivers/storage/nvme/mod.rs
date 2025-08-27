@@ -437,11 +437,10 @@ impl NVMe {
             spin_loop();
         }
 
-        let mut submission = command::Submission::identify_controller()?;
-        let completion = self.admin.submit(&mut submission).poll();
+        let submission = command::Submission::active_namespace_id_list()?;
+        let completion = self.admin.submit(&submission).poll();
         if completion.sct() == 0 && completion.sc() == 0 {
-            let data = command::admin::identify::controller::Data::get_ref(submission.prp1());
-            data.handle();
+            command::admin::identify::active_namespace_id_list::handle(submission.prp1())?;
         }
 
         Ok(())
