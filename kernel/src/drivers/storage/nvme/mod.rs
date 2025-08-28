@@ -440,6 +440,7 @@ impl NVMe {
         // Admin Identify
         {
             use command::admin::identify;
+
             let list = identify::active_namespace_id_list::List::new()?;
             self.admin
                 .new_cmd()
@@ -447,8 +448,9 @@ impl NVMe {
                 .to_identify(list.addr())
                 .to_active_namespace_id_list();
             self.admin.execute();
+
+            let data = identify::namespace::Data::new()?;
             for &id in list.0.iter().take_while(|&&n| n != 0) {
-                let data = identify::namespace::Data::new()?;
                 self.admin
                     .new_cmd()
                     .clear()
@@ -457,6 +459,8 @@ impl NVMe {
                 self.admin.execute();
                 data.handle();
             }
+            data.delete()?;
+            list.delete()?;
         }
 
         Ok(())
