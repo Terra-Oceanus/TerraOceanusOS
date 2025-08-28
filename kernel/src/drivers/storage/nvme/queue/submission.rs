@@ -1,8 +1,8 @@
 //! Submission
 
-use core::ptr::{self, copy_nonoverlapping, write_volatile};
+use core::ptr::{self, write_volatile};
 
-use crate::memory::physical::allocate;
+use crate::memory::{Memory, physical::allocate};
 
 use super::super::command::Submission as Command;
 
@@ -33,15 +33,12 @@ impl Submission {
         Ok(self.addr)
     }
 
-    pub fn enqueue(&mut self, cmd: &Command) {
-        unsafe {
-            copy_nonoverlapping(
-                cmd as *const Command,
-                (self.addr as *mut Command).add((self.tail % self.size) as usize),
-                1,
-            );
-            self.tail = self.tail.wrapping_add(1);
-            write_volatile(self.doorbell, (self.tail % self.size) as u32);
-        }
+    pub fn tail_cmd(&self) -> &'static mut Command {
+        Command::get_mut(self.addr + (self.tail % self.size) as usize * ENTRY_SIZE)
+    }
+
+    pub fn enqueue(&mut self) {
+        self.tail = self.tail.wrapping_add(1);
+        unsafe { write_volatile(self.doorbell, (self.tail % self.size) as u32) };
     }
 }

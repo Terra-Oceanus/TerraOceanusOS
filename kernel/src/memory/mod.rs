@@ -20,7 +20,15 @@ pub trait Memory: Sized {
         unsafe { &mut *(addr as *mut _) }
     }
 
+    fn new() -> Result<&'static mut Self, Error> {
+        Ok(Self::get_mut(physical::allocate(size_of::<Self>())?))
+    }
+
     fn delete(&self) -> Result<(), Error> {
-        physical::deallocate(self as *const _ as usize)
+        physical::deallocate(self.addr())
+    }
+
+    fn addr(&self) -> usize {
+        self as *const _ as usize
     }
 }

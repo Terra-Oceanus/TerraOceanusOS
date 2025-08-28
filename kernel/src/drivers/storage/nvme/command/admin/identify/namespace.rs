@@ -4,26 +4,17 @@ use crate::Memory;
 
 impl super::super::super::Submission {
     /// - CNS: 0x00
-    pub fn identify_namespace_data_structure(id: u32) -> Result<Self, crate::Error> {
-        let mut cmd = Self::identify()?;
-        cmd.nsid = id;
-        Ok(cmd)
+    pub fn to_identify_namespace_data_structure(&mut self, id: u32) {
+        self.nsid = id;
     }
 }
 
 #[repr(C, packed)]
-struct Data {
+pub struct Data {
     /// Namespace Size
     nsze: u64,
 }
 impl Memory for Data {}
 impl Data {
-    fn handle(&self) -> &Self {
-        self
-    }
-}
-
-pub fn handle(addr: usize) -> Result<(), crate::Error> {
-    Data::get_ref(addr).handle().delete()?;
-    Ok(())
+    pub fn handle(&self) {}
 }

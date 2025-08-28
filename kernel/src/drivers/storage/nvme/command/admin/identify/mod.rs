@@ -1,7 +1,5 @@
 //! Identify
 
-use crate::memory::physical::allocate;
-
 pub mod active_namespace_id_list;
 pub mod controller;
 pub mod namespace;
@@ -22,10 +20,9 @@ impl super::super::Submission {
     /// - Command Dword 14
     ///   - Bits 0 ..= 6: UIDX for UUID Index
     ///   - Bits 7 ..= 31: Reserved
-    fn identify() -> Result<Self, crate::Error> {
-        let mut cmd = Self::null();
-        cmd.cdw0 = 0x06;
-        cmd.dptr = allocate(0x1000)? as u128;
-        Ok(cmd)
+    pub fn to_identify(&mut self, addr: usize) -> &'static mut Self {
+        self.cdw0 = 0x06;
+        self.dptr = addr as u128;
+        unsafe { &mut *(self as *mut Self) }
     }
 }

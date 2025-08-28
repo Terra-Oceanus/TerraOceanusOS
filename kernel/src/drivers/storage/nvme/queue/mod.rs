@@ -1,7 +1,7 @@
 //! Queue
 
-pub mod completion;
-pub mod submission;
+mod completion;
+mod submission;
 
 use completion::Completion;
 use submission::Submission;
@@ -46,12 +46,12 @@ impl Queue {
         ))
     }
 
-    pub fn submit(&mut self, cmd: &super::command::Submission) -> &mut Self {
-        self.submission.enqueue(cmd);
-        self
+    pub fn new_cmd(&self) -> &'static mut super::command::Submission {
+        self.submission.tail_cmd()
     }
 
-    pub fn poll(&mut self) -> &'static super::command::Completion {
-        self.completion.dequeue()
+    pub fn execute(&mut self) {
+        self.submission.enqueue();
+        self.completion.dequeue();
     }
 }

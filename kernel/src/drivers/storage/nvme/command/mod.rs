@@ -1,5 +1,7 @@
 //! Command
 
+use core::ptr::write_bytes;
+
 use crate::Memory;
 
 pub mod admin;
@@ -67,26 +69,13 @@ pub struct Submission {
     /// Command Dword 15
     cdw15: u32,
 }
+impl Memory for Submission {}
 impl Submission {
-    fn null() -> Self {
-        Self {
-            cdw0: 0,
-            nsid: 0,
-            cdw2: 0,
-            cdw3: 0,
-            mptr: 0,
-            dptr: 0,
-            cdw10: 0,
-            cdw11: 0,
-            cdw12: 0,
-            cdw13: 0,
-            cdw14: 0,
-            cdw15: 0,
+    pub fn clear(&mut self) -> &'static mut Self {
+        unsafe {
+            write_bytes(self as *mut Self, 0, 1);
+            &mut *(self as *mut Self)
         }
-    }
-
-    pub fn prp1(&self) -> usize {
-        self.dptr as usize
     }
 }
 

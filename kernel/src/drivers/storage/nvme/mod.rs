@@ -437,23 +437,25 @@ impl NVMe {
             spin_loop();
         }
 
-        let submission = command::Submission::active_namespace_id_list()?;
-        let completion = self.admin.submit(&submission).poll();
-        if completion.sct() == 0 && completion.sc() == 0 {
-            let mut ptr = submission.prp1() as *const u32;
-            loop {
-                let id = unsafe { ptr.read_volatile() };
-                if id == 0 {
-                    break;
-                }
-
-                let submission = command::Submission::identify_namespace_data_structure(id)?;
-                let completion = self.admin.submit(&submission).poll();
-                if completion.sct() == 0 && completion.sc() == 0 {
-                    command::admin::identify::namespace::handle(submission.prp1())?;
-                }
-
-                ptr = unsafe { ptr.add(1) };
+        // Admin Identify
+        {
+            use command::admin::identify;
+            let list = identify::active_namespace_id_list::List::new()?;
+            self.admin
+                .new_cmd()
+                .clear()
+                .to_identify(list.addr())
+                .to_active_namespace_id_list();
+            self.admin.execute();
+            for &id in list.0.iter().take_while(|&&n| n != 0) {
+                let data = identify::namespace::Data::new()?;
+                self.admin
+                    .new_cmd()
+                    .clear()
+                    .to_identify(data.addr())
+                    .to_identify_namespace_data_structure(id);
+                self.admin.execute();
+                data.handle();
             }
         }
 

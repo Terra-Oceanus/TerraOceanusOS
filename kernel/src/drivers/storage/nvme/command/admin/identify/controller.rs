@@ -4,10 +4,8 @@ use crate::Memory;
 
 impl super::super::super::Submission {
     /// - CNS: 0x01
-    pub fn identify_controller_data_structure() -> Result<Self, crate::Error> {
-        let mut cmd = Self::identify()?;
-        cmd.cdw10 = 0x01;
-        Ok(cmd)
+    pub fn to_identify_controller_data_structure(&mut self) {
+        self.cdw10 = 0x01;
     }
 }
 
