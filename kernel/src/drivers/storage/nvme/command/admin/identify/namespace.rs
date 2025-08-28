@@ -175,14 +175,37 @@ pub struct Data {
 }
 impl Memory for Data {}
 impl Data {
-    pub fn handle(&self) {}
+    pub fn handle(&self) {
+        let flbas = self.flbas;
+        let lba = &self.lba[((flbas & 0b1111) | ((flbas & 0b1100000) >> 1)) as usize];
+    }
 }
 
-#[repr(C)]
+#[repr(C, packed)]
 struct LBAFormatData {
     /// - Bits 0 ..= 15: MS for Metadata Size
+    ///   - 0: Not supported
     /// - Bits 16 ..= 23: LBADS for LBA Data Size
+    ///   - 0: Self not available
+    ///   - 1 ..= 8: Not supported
     /// - Bits 24 ..= 25: RP for Relative Performance
+    ///   - 0b00: Best
+    ///   - 0b01: Better
+    ///   - 0b10: Good
+    ///   - 0b11: Degraded
     /// - Bits 26 ..= 31: Reserved
     dword0: u32,
+}
+impl LBAFormatData {
+    fn ms(&self) -> u16 {
+        self.dword0 as u16
+    }
+
+    fn lbads(&self) -> u8 {
+        (self.dword0 >> 16) as u8
+    }
+
+    fn rp(&self) -> u8 {
+        ((self.dword0 >> 24) & 0b11) as u8
+    }
 }
