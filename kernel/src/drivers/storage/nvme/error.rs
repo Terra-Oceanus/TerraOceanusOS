@@ -1,7 +1,7 @@
 //! Error
 
 pub enum Error {
-    InvalidAddress,
+    InvalidAddress(&'static str),
     InvalidCapability,
     InvalidRegisterValue(&'static str),
 }
@@ -24,7 +24,11 @@ impl crate::Output for Error {
     fn output(&self) {
         "NVMe ".output();
         match self {
-            Error::InvalidAddress => "Invalid Address",
+            Error::InvalidAddress(entity) => {
+                "Invalid ".output();
+                entity.output();
+                " Address"
+            }
             Error::InvalidRegisterValue(reg) => {
                 "Invalid ".output();
                 reg.output();

@@ -356,7 +356,7 @@ impl NVMe {
 
     fn init(&mut self) -> Result<(), crate::Error> {
         if self.pcie_addr == 0 {
-            return Err(Error::InvalidAddress.into());
+            return Err(Error::InvalidAddress("PCIe").into());
         }
         let pcie = pcie::Type0::get_mut(self.pcie_addr);
         pcie.header.set_memory_space(true);
@@ -376,7 +376,7 @@ impl NVMe {
         // MSI-X
         {
             if self.msi_x.addr == 0 {
-                return Err(Error::InvalidAddress.into());
+                return Err(Error::InvalidAddress("MSI-X").into());
             }
             self.msi_x.disable();
             self.msi_x.set_tables(pcie.bar(self.msi_x.table_bir()?));
