@@ -2,6 +2,8 @@
 
 use crate::Memory;
 
+use super::super::super::super::Error;
+
 impl super::super::super::Submission {
     /// - CNS: 0x00
     pub fn to_identify_namespace_data_structure(&mut self, id: u32) {
@@ -37,6 +39,7 @@ pub struct Data {
     /// - Bits 0 ..= 3: FIDXL for Format Index Lower
     /// - Bit 4: MTELBA for Metadata Transferred as Extended LBA
     /// - Bits 5 ..= 6: FIDXU for Format Index Upper
+    ///   - Ignored if NLBAF + NULBAF <= 16
     /// - Bit 7: Reserved
     flbas: u8,
 
@@ -168,6 +171,7 @@ pub struct Data {
     /// IEEE Extended Unique Identifier
     eui64: u64,
 
+    /// Logical Block Address
     lba: [LBAFormatData; 64],
 
     /// Vendor Specific
@@ -175,9 +179,18 @@ pub struct Data {
 }
 impl Memory for Data {}
 impl Data {
-    pub fn handle(&self) {
+    pub fn handle(&self) -> Result<(usize, usize), Error> {
         let flbas = self.flbas;
-        let lba = &self.lba[((flbas & 0b1111) | ((flbas & 0b1100000) >> 1)) as usize];
+        let lba = &self.lba[((flbas & 0b1111)
+            | if self.nlbaf + self.nulbaf <= 16 {
+                0
+            } else {
+                (flbas & 0b1100000) >> 1
+            }) as usize];
+        if lba.ms() != 0 {
+            return Err(Error::InvalidRegisterValue("LBAF.MS"));
+        }
+        Ok((self.ncap as usize, 1 << lba.lbads()))
     }
 }
 
@@ -197,15 +210,11 @@ struct LBAFormatData {
     dword0: u32,
 }
 impl LBAFormatData {
-    fn ms(&self) -> u16 {
-        self.dword0 as u16
+    fn ms(&self) -> u32 {
+        self.dword0 & 0xFFFF
     }
 
-    fn lbads(&self) -> u8 {
-        (self.dword0 >> 16) as u8
-    }
-
-    fn rp(&self) -> u8 {
-        ((self.dword0 >> 24) & 0b11) as u8
+    fn lbads(&self) -> usize {
+        ((self.dword0 >> 16) & 0xFF) as usize
     }
 }

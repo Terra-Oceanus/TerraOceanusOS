@@ -31,6 +31,8 @@ struct NVMe {
     dstrd: u8,
 
     admin: Queue,
+
+    ns: Namespace,
 }
 impl NVMe {
     /// Controller Capabilities
@@ -324,6 +326,10 @@ impl NVMe {
             msi_x: MSIX::null(),
             dstrd: 0,
             admin: Queue::null(),
+            ns: Namespace {
+                lba_count: 0,
+                lba_size: 0,
+            },
         }
     }
 
@@ -437,7 +443,7 @@ impl NVMe {
             spin_loop();
         }
 
-        // Admin Identify
+        // Admin
         {
             use command::admin::identify;
 
@@ -449,22 +455,30 @@ impl NVMe {
                 .to_active_namespace_id_list();
             self.admin.execute();
 
-            let data = identify::namespace::Data::new()?;
-            for &id in list.0.iter().take_while(|&&n| n != 0) {
-                self.admin
-                    .new_cmd()
-                    .clear()
-                    .to_identify(data.addr())
-                    .to_identify_namespace_data_structure(id);
-                self.admin.execute();
-                data.handle();
+            if list.0[1] != 0 {
+                return Err(Error::InvalidRegisterValue("Namespace ID").into());
             }
+            let data = identify::namespace::Data::new()?;
+            self.admin
+                .new_cmd()
+                .clear()
+                .to_identify(data.addr())
+                .to_identify_namespace_data_structure(list.0[0]);
+            self.admin.execute();
+
+            (self.ns.lba_count, self.ns.lba_size) = data.handle()?;
+
             data.delete()?;
             list.delete()?;
         }
 
         Ok(())
     }
+}
+
+struct Namespace {
+    lba_count: usize,
+    lba_size: usize,
 }
 
 pub fn init() -> Result<(), crate::Error> {
