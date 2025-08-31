@@ -451,8 +451,7 @@ impl NVMe {
             self.admin
                 .new_cmd()
                 .clear()
-                .to_identify(list.addr())
-                .to_active_namespace_id_list();
+                .to_active_namespace_id_list(list.addr());
             self.admin.execute();
 
             if list.0[1] != 0 {
@@ -462,8 +461,7 @@ impl NVMe {
             self.admin
                 .new_cmd()
                 .clear()
-                .to_identify(data.addr())
-                .to_identify_namespace_data_structure(list.0[0]);
+                .to_identify_namespace_data_structure(data.addr(), list.0[0]);
             self.admin.execute();
 
             (self.ns.lba_count, self.ns.lba_size) = data.handle()?;

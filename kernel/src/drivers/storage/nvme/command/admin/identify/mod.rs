@@ -20,9 +20,8 @@ impl super::super::Submission {
     /// - Command Dword 14
     ///   - Bits 0 ..= 6: UIDX for UUID Index
     ///   - Bits 7 ..= 31: Reserved
-    pub fn to_identify(&mut self, addr: usize) -> &'static mut Self {
+    fn to_identify(&mut self, addr: usize) {
         self.cdw0 = 0x06;
         self.dptr = addr as u128;
-        unsafe { &mut *(self as *mut Self) }
     }
 }

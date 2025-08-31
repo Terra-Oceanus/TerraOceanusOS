@@ -6,7 +6,8 @@ use super::super::super::super::Error;
 
 impl super::super::super::Submission {
     /// - CNS: 0x00
-    pub fn to_identify_namespace_data_structure(&mut self, id: u32) {
+    pub fn to_identify_namespace_data_structure(&mut self, addr: usize, id: u32) {
+        self.to_identify(addr);
         self.nsid = id;
     }
 }

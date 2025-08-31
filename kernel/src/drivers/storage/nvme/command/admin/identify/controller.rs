@@ -4,7 +4,8 @@ use crate::Memory;
 
 impl super::super::super::Submission {
     /// - CNS: 0x01
-    pub fn to_identify_controller_data_structure(&mut self) {
+    pub fn to_identify_controller_data_structure(&mut self, addr: usize) {
+        self.to_identify(addr);
         self.cdw10 = 0x01;
     }
 }
