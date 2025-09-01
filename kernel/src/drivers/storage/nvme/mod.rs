@@ -443,7 +443,7 @@ impl NVMe {
             spin_loop();
         }
 
-        // Admin
+        // Admin Identify
         {
             use command::admin::identify;
 
