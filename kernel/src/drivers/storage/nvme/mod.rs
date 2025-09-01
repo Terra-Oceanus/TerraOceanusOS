@@ -329,6 +329,7 @@ impl NVMe {
             admin: Queue::null(),
             io: Queue::null(),
             ns: Namespace {
+                id: 0,
                 lba_count: 0,
                 lba_size: 0,
             },
@@ -455,7 +456,6 @@ impl NVMe {
             let list = identify::active_namespace_id_list::List::new()?;
             self.admin
                 .next_submission()
-                .clear()
                 .to_active_namespace_id_list(list.addr());
             self.admin.doorbell_submission(1)?;
             self.admin.next_completion().to_active_namespace_id_list()?;
@@ -464,11 +464,11 @@ impl NVMe {
             if list.0[1] != 0 {
                 return Err(Error::InvalidRegisterValue("Namespace ID").into());
             }
+            self.ns.id = list.0[0];
             let data = identify::namespace::Data::new()?;
             self.admin
                 .next_submission()
-                .clear()
-                .to_identify_namespace_data_structure(data.addr(), list.0[0]);
+                .to_identify_namespace_data_structure(data.addr(), self.ns.id);
             self.admin.doorbell_submission(1)?;
             self.admin
                 .next_completion()
@@ -489,14 +489,17 @@ impl NVMe {
                 .init(self.addr + Self::DOORBELL, self.dstrd, size, size)?;
             let id = self.io.id() as u32;
 
-            self.admin
-                .next_submission()
-                .clear()
-                .to_create_io_completion_queue(iocq as u64, id, size as u32, 0);
-            self.admin
-                .next_submission()
-                .clear()
-                .to_create_io_submission_queue(iosq as u64, id, size as u32);
+            self.admin.next_submission().to_create_io_completion_queue(
+                iocq as u64,
+                id,
+                size as u32,
+                0,
+            );
+            self.admin.next_submission().to_create_io_submission_queue(
+                iosq as u64,
+                id,
+                size as u32,
+            );
             self.admin.doorbell_submission(2)?;
             self.admin
                 .next_completion()
@@ -512,6 +515,8 @@ impl NVMe {
 }
 
 struct Namespace {
+    id: u32,
+
     lba_count: usize,
     lba_size: usize,
 }

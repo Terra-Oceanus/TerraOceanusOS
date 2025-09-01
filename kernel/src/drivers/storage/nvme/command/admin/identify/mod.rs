@@ -21,7 +21,7 @@ impl super::super::Submission {
     ///   - Bits 0 ..= 6: UIDX for UUID Index
     ///   - Bits 7 ..= 31: Reserved
     fn to_identify(&mut self, addr: usize) {
-        self.cdw0 = 0x06;
+        self.cdw0 |= 0x06;
         self.dptr = addr as u128;
     }
 }

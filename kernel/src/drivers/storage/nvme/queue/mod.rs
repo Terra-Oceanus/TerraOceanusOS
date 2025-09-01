@@ -11,6 +11,8 @@ static mut ID_COUNTER: u16 = 0;
 pub struct Queue {
     id: u16,
 
+    cid: u16,
+
     submission: Submission,
     completion: Completion,
 }
@@ -18,6 +20,7 @@ impl Queue {
     pub const fn null() -> Self {
         Self {
             id: 0,
+            cid: 0,
             submission: Submission::null(),
             completion: Completion::null(),
         }

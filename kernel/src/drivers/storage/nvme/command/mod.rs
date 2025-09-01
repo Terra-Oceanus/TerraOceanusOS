@@ -1,7 +1,5 @@
 //! Command
 
-use core::ptr::write_bytes;
-
 use crate::Memory;
 
 use super::Error;
@@ -73,11 +71,8 @@ pub struct Submission {
 }
 impl Memory for Submission {}
 impl Submission {
-    pub fn clear(&mut self) -> &'static mut Self {
-        unsafe {
-            write_bytes(self as *mut Self, 0, 1);
-            &mut *(self as *mut Self)
-        }
+    pub fn set_cid(&mut self, cid: u16) {
+        self.cdw0 = (cid as u32) << 16;
     }
 }
 

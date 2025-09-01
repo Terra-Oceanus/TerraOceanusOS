@@ -8,7 +8,6 @@ impl super::super::Submission {
     ///   - Bits 0 ..= 15: QID for Queue Identifier
     ///   - Bits 16 ..= 31: Reserved
     pub fn to_delete_io_submission_queue(&mut self, id: u32) {
-        self.cdw0 = 0x00;
         self.cdw10 = id;
     }
 }

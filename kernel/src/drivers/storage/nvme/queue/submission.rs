@@ -35,6 +35,8 @@ impl Submission {
 
     pub fn next_cmd(&mut self) -> &'static mut Command {
         let cmd = Command::get_mut(self.addr + (self.tail % self.size) as usize * ENTRY_SIZE);
+        unsafe { (cmd as *mut Command).write_bytes(0, 1) };
+        cmd.set_cid(self.tail);
         self.tail = self.tail.wrapping_add(1);
         cmd
     }

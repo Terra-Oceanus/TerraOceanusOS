@@ -18,7 +18,7 @@ impl super::super::Submission {
     ///   - Bits 2 ..= 15: Reserved
     ///   - Bits 16 ..= 31: IV for Interrupt Vector
     pub fn to_create_io_completion_queue(&mut self, addr: u64, id: u32, size: u32, vector: u32) {
-        self.cdw0 = 0x05;
+        self.cdw0 |= 0x05;
         self.dptr = addr as u128;
         self.cdw10 = ((size - 1) << 16) | id;
         self.cdw11 = 1;
