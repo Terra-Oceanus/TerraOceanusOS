@@ -2,7 +2,6 @@
 
 pub enum Error {
     InvalidAddress(&'static str),
-    InvalidCapability,
     InvalidRegisterValue(&'static str),
     Queue(&'static str),
 }
@@ -35,7 +34,6 @@ impl crate::Output for Error {
                 reg.output();
                 " Value"
             }
-            Error::InvalidCapability => "Invalid Capability",
             Error::Queue(msg) => {
                 "Queue ".output();
                 msg
