@@ -1,5 +1,7 @@
 //! Create I/O Submission Queue
 
+use super::super::super::Error;
+
 impl super::super::Submission {
     /// - Opcode: 0x01
     ///   - Data Transfer: 0b01
@@ -25,7 +27,26 @@ impl super::super::Submission {
     pub fn to_create_io_submission_queue(&mut self, addr: u64, id: u32, size: u32) {
         self.cdw0 = 0x01;
         self.dptr = addr as u128;
-        self.cdw10 = (size << 16) | id;
+        self.cdw10 = ((size - 1) << 16) | id;
         self.cdw11 = (id << 16) | 1;
+    }
+}
+
+impl super::super::Completion {
+    pub fn to_create_io_submission_queue(&self) -> Result<(), Error> {
+        match self.sct() {
+            0x0 => match self.sc() {
+                0x00 => return Ok(()),
+                _ => {}
+            },
+            0x1 => match self.sc() {
+                0x00 => return Err(Error::Queue("Completion Queue Invalid")),
+                0x01 => return Err(Error::Queue("Invalid Queue Identifier")),
+                0x02 => return Err(Error::Queue("Invalid Queue Size")),
+                _ => {}
+            },
+            _ => {}
+        }
+        Err(Error::Queue("Unknown Status Code Type"))
     }
 }

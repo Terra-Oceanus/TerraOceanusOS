@@ -92,15 +92,7 @@ pub struct Completion {
     /// - Bit 16: P for Phase Tag
     /// - Bits 17 ..= 31: STATUS for Status
     ///   - Bits 0 ..= 7: SC for Status Code
-    ///     - if SCT is 0x0
-    ///       - 0x00: Successful Completion
     ///   - Bits 8 ..= 10: SCT for Status Code Type
-    ///     - 0x0: Generic Command Status
-    ///     - 0x1: Command Specific Status
-    ///     - 0x2: Media and Data Integrity Errors
-    ///     - 0x3: Path Related Status
-    ///     - 0x4 ..= 0x6: Reserved
-    ///     - 0x7: Vendor Specific
     ///   - Bits 11 ..= 12: CRD for Command Retry Delay
     ///   - Bit 13: M for More
     ///   - Bit 14: DNR for Do Not Retry
@@ -116,6 +108,13 @@ impl Completion {
         (self.dw3 >> 17) as u8
     }
 
+    /// Status Code Type
+    /// - 0x0: Generic Command Status
+    /// - 0x1: Command Specific Status
+    /// - 0x2: Media and Data Integrity Errors
+    /// - 0x3: Path Related Status
+    /// - 0x4 ..= 0x6: Reserved
+    /// - 0x7: Vendor Specific
     pub fn sct(&self) -> u8 {
         (((self.dw3 >> 17) >> 8) & 0b111) as u8
     }

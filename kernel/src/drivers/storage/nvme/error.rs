@@ -4,6 +4,7 @@ pub enum Error {
     InvalidAddress(&'static str),
     InvalidCapability,
     InvalidRegisterValue(&'static str),
+    Queue(&'static str),
 }
 impl From<Error> for super::super::Error {
     fn from(err: Error) -> Self {
@@ -35,6 +36,10 @@ impl crate::Output for Error {
                 " Value"
             }
             Error::InvalidCapability => "Invalid Capability",
+            Error::Queue(msg) => {
+                "Queue ".output();
+                msg
+            }
         }
         .output();
     }

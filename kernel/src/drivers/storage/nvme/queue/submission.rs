@@ -4,7 +4,7 @@ use core::ptr::{self, write_volatile};
 
 use crate::memory::{Memory, physical::allocate};
 
-use super::super::command::Submission as Command;
+use super::super::{Error, command::Submission as Command};
 
 const ENTRY_SIZE: usize = 64;
 
@@ -33,12 +33,17 @@ impl Submission {
         Ok(self.addr)
     }
 
-    pub fn tail_cmd(&self) -> &'static mut Command {
-        Command::get_mut(self.addr + (self.tail % self.size) as usize * ENTRY_SIZE)
+    pub fn next_cmd(&mut self) -> &'static mut Command {
+        let cmd = Command::get_mut(self.addr + (self.tail % self.size) as usize * ENTRY_SIZE);
+        self.tail = self.tail.wrapping_add(1);
+        cmd
     }
 
-    pub fn enqueue(&mut self) {
-        self.tail = self.tail.wrapping_add(1);
+    pub fn doorbell(&mut self, n: u16) -> Result<(), Error> {
+        if n >= self.size {
+            return Err(Error::Queue("Overflow"));
+        }
         unsafe { write_volatile(self.doorbell, (self.tail % self.size) as u32) };
+        Ok(())
     }
 }

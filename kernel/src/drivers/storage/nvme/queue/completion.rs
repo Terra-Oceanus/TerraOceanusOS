@@ -39,11 +39,11 @@ impl Completion {
         Ok(self.addr)
     }
 
-    pub fn dequeue(&mut self) -> &'static Command {
-        let command = loop {
-            let command = Command::get_ref(self.addr + (self.head as usize * ENTRY_SIZE));
-            if command.phase() == self.phase {
-                break command;
+    pub fn next_cmd(&mut self) -> &'static mut Command {
+        let cmd = loop {
+            let cmd = Command::get_mut(self.addr + (self.head as usize * ENTRY_SIZE));
+            if cmd.phase() == self.phase {
+                break cmd;
             }
             spin_loop();
         };
@@ -55,8 +55,10 @@ impl Completion {
                 self.head + 1
             }
         };
-        unsafe { write_volatile(self.doorbell, self.head as u32) };
+        cmd
+    }
 
-        command
+    pub fn doorbell(&mut self) {
+        unsafe { write_volatile(self.doorbell, self.head as u32) };
     }
 }

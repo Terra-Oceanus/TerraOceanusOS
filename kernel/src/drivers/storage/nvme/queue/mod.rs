@@ -11,8 +11,8 @@ static mut ID_COUNTER: u16 = 0;
 pub struct Queue {
     id: u16,
 
-    pub submission: Submission,
-    pub completion: Completion,
+    submission: Submission,
+    completion: Completion,
 }
 impl Queue {
     pub const fn null() -> Self {
@@ -46,12 +46,23 @@ impl Queue {
         ))
     }
 
-    pub fn new_cmd(&self) -> &'static mut super::command::Submission {
-        self.submission.tail_cmd()
+    pub fn id(&self) -> u16 {
+        self.id
     }
 
-    pub fn execute(&mut self) {
-        self.submission.enqueue();
-        self.completion.dequeue();
+    pub fn next_submission(&mut self) -> &'static mut super::command::Submission {
+        self.submission.next_cmd()
+    }
+
+    pub fn doorbell_submission(&mut self, n: u16) -> Result<(), super::Error> {
+        self.submission.doorbell(n)
+    }
+
+    pub fn next_completion(&mut self) -> &'static mut super::command::Completion {
+        self.completion.next_cmd()
+    }
+
+    pub fn doorbell_completion(&mut self) {
+        self.completion.doorbell()
     }
 }

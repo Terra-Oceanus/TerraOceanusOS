@@ -13,6 +13,24 @@ impl super::super::super::Submission {
     }
 }
 
+impl super::super::super::Completion {
+    pub fn to_identify_namespace_data_structure(&self) -> Result<(), Error> {
+        match self.sct() {
+            0x0 => match self.sc() {
+                0x00 => return Ok(()),
+                0x0B => return Err(Error::Queue("Invalid Namespace or Format")),
+                _ => {}
+            },
+            0x1 => match self.sc() {
+                0x2C => return Err(Error::Queue("Invalid I/O Command Set")),
+                _ => {}
+            },
+            _ => {}
+        }
+        Err(Error::Queue("Unknown Status Code Type"))
+    }
+}
+
 #[repr(C, packed)]
 pub struct Data {
     /// Namespace Size

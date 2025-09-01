@@ -3,7 +3,7 @@
 use core::hint::spin_loop;
 
 use crate::{
-    Memory,
+    Math, Memory,
     drivers::pcie::{self, capabilities::MSIX},
     find_capabilities,
 };
@@ -31,6 +31,7 @@ struct NVMe {
     dstrd: u8,
 
     admin: Queue,
+    io: Queue,
 
     ns: Namespace,
 }
@@ -326,6 +327,7 @@ impl NVMe {
             msi_x: MSIX::null(),
             dstrd: 0,
             admin: Queue::null(),
+            io: Queue::null(),
             ns: Namespace {
                 lba_count: 0,
                 lba_size: 0,
@@ -392,7 +394,8 @@ impl NVMe {
             self.msi_x.enable();
         }
 
-        self.dstrd = ((self.read(Self::CAP) >> 32) & 0xF) as u8;
+        let cap = self.read(Self::CAP);
+        self.dstrd = ((cap >> 32) & 0xF) as u8;
 
         let admin_size = command::admin::ENTRY_COUNT;
         let (asq, acq) = self.admin.init(
@@ -438,36 +441,70 @@ impl NVMe {
                         0b000
                     }
                 } << 11)
+                | ((size_of::<command::Submission>().log2() & 0xF) << 16) as u64
+                | ((size_of::<command::Completion>().log2() & 0xF) << 20) as u64
         });
         while (self.read(Self::CSTS) & 0b1) == 0 {
             spin_loop();
         }
 
-        // Admin Identify
+        // Identify Namespace
         {
             use command::admin::identify;
 
             let list = identify::active_namespace_id_list::List::new()?;
             self.admin
-                .new_cmd()
+                .next_submission()
                 .clear()
                 .to_active_namespace_id_list(list.addr());
-            self.admin.execute();
+            self.admin.doorbell_submission(1)?;
+            self.admin.next_completion().to_active_namespace_id_list()?;
+            self.admin.doorbell_completion();
 
             if list.0[1] != 0 {
                 return Err(Error::InvalidRegisterValue("Namespace ID").into());
             }
             let data = identify::namespace::Data::new()?;
             self.admin
-                .new_cmd()
+                .next_submission()
                 .clear()
                 .to_identify_namespace_data_structure(data.addr(), list.0[0]);
-            self.admin.execute();
+            self.admin.doorbell_submission(1)?;
+            self.admin
+                .next_completion()
+                .to_identify_namespace_data_structure()?;
+            self.admin.doorbell_completion();
 
             (self.ns.lba_count, self.ns.lba_size) = data.handle()?;
 
             data.delete()?;
             list.delete()?;
+        }
+
+        // Create I/O Queue
+        {
+            let size = ((cap & 0xFFFF) + 1) as u16;
+            let (iosq, iocq) = self
+                .io
+                .init(self.addr + Self::DOORBELL, self.dstrd, size, size)?;
+            let id = self.io.id() as u32;
+
+            self.admin
+                .next_submission()
+                .clear()
+                .to_create_io_completion_queue(iocq as u64, id, size as u32, 0);
+            self.admin
+                .next_submission()
+                .clear()
+                .to_create_io_submission_queue(iosq as u64, id, size as u32);
+            self.admin.doorbell_submission(2)?;
+            self.admin
+                .next_completion()
+                .to_create_io_completion_queue()?;
+            self.admin
+                .next_completion()
+                .to_create_io_submission_queue()?;
+            self.admin.doorbell_completion();
         }
 
         Ok(())
