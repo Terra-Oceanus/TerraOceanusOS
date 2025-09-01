@@ -89,14 +89,14 @@ impl NVMe {
     /// - Bits 4 ..= 6: CSS for I/O Command Set Selected
     ///   - 0b000:
     ///     - NVM Command Set if CAP.CSS.NCSS is set
-    ///     - Reserved if CAP.CSS.NCSS is clear
+    ///     - Reserved if CAP.CSS.NCSS is cleared
     ///   - 0b001 ..= 0b101: Reserved
     ///   - 0b110:
     ///     - All Supported I/O Command Sets if CAP.CSS.IOCSS is set
-    ///     - Reserved if CAP.CSS.IOCSS is clear
+    ///     - Reserved if CAP.CSS.IOCSS is cleared
     ///   - 0b111:
     ///     - Admin Command Set only if CAP.CSS.NOIOCSS is set
-    ///     - Reserved if CAP.CSS.NOIOCSS is clear
+    ///     - Reserved if CAP.CSS.NOIOCSS is cleared
     /// - Bits 7 ..= 10: MPS for Memory Page Size
     /// - Bits 11 ..= 13: AMS for Arbitration Mechanism Selected
     ///   - 0b000: Round Robin

@@ -8,7 +8,7 @@ impl super::super::Submission {
     ///   - Function: 0b000000
     /// - DPTR.PRP1
     ///   - A 64-bit base memory address pointer if CDW11.PC is set
-    ///   - A PRP List pointer if CDW11.PC is clear
+    ///   - A PRP List pointer if CDW11.PC is cleared
     /// - CDW10
     ///   - Bits 0 ..= 15: QID for Queue Identifier
     ///   - Bits 16 ..= 31: QSIZE for Queue Size

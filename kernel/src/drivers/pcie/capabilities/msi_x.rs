@@ -87,11 +87,11 @@ struct Table {
     /// - Bit 2: DM for Destination Mode
     ///   - 0 if RH is set: Logical
     ///   - 1 if RH is set: Physical
-    ///   - Ignored if RH is clear
+    ///   - Ignored if RH is cleared
     /// - Bit 3: RH for Redirection Hint Indication
     /// - Bits 4 ..= 11: Reserved
     /// - Bits 12 ..= 19: Destination ID
-    ///   - 0xFF if RH is set & DM is clear
+    ///   - 0xFF if RH is set & DM is cleared
     /// - Bits 20 ..= 31: 0xFEE
     /// - Bits 32 ..= 63: Reserved
     message_address: u64,
@@ -110,7 +110,7 @@ struct Table {
     /// - Bit 14: Level
     ///   - 0 if Trigger Mode is set: Deassert
     ///   - 1 if Trigger Mode is set: Assert
-    ///   - Ignored if Trigger Mode is clear
+    ///   - Ignored if Trigger Mode is cleared
     /// - Bit 15: Trigger Mode
     ///   - 0: Edge
     ///   - 1: Level
