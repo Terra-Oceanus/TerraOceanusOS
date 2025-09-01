@@ -1,7 +1,5 @@
 //! Advanced Configuration and Power Interface
 
-use core::slice::from_raw_parts;
-
 mod dsdt;
 mod error;
 mod facs;
@@ -13,17 +11,7 @@ mod xsdt;
 
 pub use error::Error;
 
-trait Checksum {
-    fn checksum(&self, size: usize) -> bool {
-        unsafe {
-            from_raw_parts(self as *const Self as *const u8, size)
-                .iter()
-                .copied()
-                .fold(0u8, u8::wrapping_add)
-                == 0
-        }
-    }
-}
+use crate::math::Checksum;
 
 pub fn init(rsdp_addr: usize) -> Result<(), Error> {
     let xsdt_addr = rsdp::init(rsdp_addr)?;

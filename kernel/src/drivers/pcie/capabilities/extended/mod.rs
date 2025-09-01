@@ -1,6 +1,6 @@
 //! Extended
 
-use crate::Memory;
+use crate::memory::Memory;
 
 #[repr(C)]
 pub struct Header {

@@ -1,6 +1,6 @@
 //! Standard Header
 
-use crate::{Memory, drivers::storage::nvme};
+use crate::{drivers::storage::nvme, memory::Memory};
 
 use super::Header;
 

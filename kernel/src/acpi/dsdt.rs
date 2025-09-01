@@ -1,6 +1,6 @@
 //! Differentiated System Description Table
 
-use crate::Memory;
+use crate::memory::Memory;
 
 use super::{Error, Header};
 

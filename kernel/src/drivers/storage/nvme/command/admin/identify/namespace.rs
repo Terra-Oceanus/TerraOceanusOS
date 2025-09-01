@@ -1,6 +1,6 @@
 //! Identify Controller Data Structure
 
-use crate::Memory;
+use crate::memory::Memory;
 
 use super::super::super::super::Error;
 

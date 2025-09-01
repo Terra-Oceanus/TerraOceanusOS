@@ -1,8 +1,8 @@
 //! Root System Description Pointer
 
-use crate::Memory;
+use crate::{math::Checksum, memory::Memory};
 
-use super::{Checksum, Error};
+use super::Error;
 
 static mut ADDR: usize = 0;
 

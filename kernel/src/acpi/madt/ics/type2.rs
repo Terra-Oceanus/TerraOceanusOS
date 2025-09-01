@@ -1,6 +1,6 @@
 //! Interrupt Source Override
 
-use crate::{Memory, x86_64::apic::ioapic};
+use crate::{memory::Memory, x86_64::apic::ioapic};
 
 use super::{super::Error, Header};
 

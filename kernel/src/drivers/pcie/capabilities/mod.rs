@@ -1,6 +1,6 @@
 //! Capability
 
-use crate::Memory;
+use crate::memory::Memory;
 
 mod capability;
 pub mod extended;

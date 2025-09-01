@@ -1,6 +1,6 @@
 //! Command
 
-use crate::Memory;
+use crate::memory::Memory;
 
 use super::Error;
 

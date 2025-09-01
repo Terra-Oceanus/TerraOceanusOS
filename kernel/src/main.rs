@@ -14,8 +14,6 @@ mod memory;
 use arch::x86_64;
 use error::Error;
 use io::text::{Output, screen};
-use math::Math;
-use memory::Memory;
 
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {

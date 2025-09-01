@@ -2,7 +2,7 @@
 //!
 //! NMI stands for Non-Maskable Interrupt
 
-use crate::Memory;
+use crate::memory::Memory;
 
 use super::{super::Error, Header};
 

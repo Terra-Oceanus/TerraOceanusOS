@@ -2,7 +2,7 @@
 
 use core::slice;
 
-use crate::{Memory, drivers::pcie};
+use crate::{drivers::pcie, memory::Memory};
 
 use super::{Error, Header};
 

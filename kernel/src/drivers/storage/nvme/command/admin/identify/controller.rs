@@ -1,6 +1,6 @@
 //! Identify Controller Data Structure
 
-use crate::Memory;
+use crate::memory::Memory;
 
 impl super::super::super::Submission {
     /// - CDW10.CNS: 0x01

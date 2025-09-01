@@ -3,9 +3,10 @@
 use core::hint::spin_loop;
 
 use crate::{
-    Math, Memory,
     drivers::pcie::{self, capabilities::MSIX},
     find_capabilities,
+    math::Math,
+    memory::Memory,
     memory::physical::allocate,
 };
 
