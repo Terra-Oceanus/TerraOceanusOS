@@ -35,10 +35,7 @@ impl super::super::Submission {
 impl super::super::Completion {
     pub fn to_create_io_submission_queue(&self) -> Result<(), Error> {
         match self.sct() {
-            0x0 => match self.sc() {
-                0x00 => return Ok(()),
-                _ => {}
-            },
+            0x0 => return self.gcs_sc_to_str(),
             0x1 => match self.sc() {
                 0x00 => return Err(Error::Queue("Completion Queue Invalid")),
                 0x01 => return Err(Error::Queue("Invalid Queue Identifier")),
