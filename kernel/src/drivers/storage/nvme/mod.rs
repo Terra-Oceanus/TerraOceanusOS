@@ -6,6 +6,7 @@ use crate::{
     Math, Memory,
     drivers::pcie::{self, capabilities::MSIX},
     find_capabilities,
+    memory::physical::allocate,
 };
 
 mod command;
@@ -512,6 +513,17 @@ impl NVMe {
 
         Ok(())
     }
+
+    fn read_lba(&mut self, start: u64, count: u32) -> Result<usize, crate::Error> {
+        let addr = allocate(self.ns.lba_size * count as usize)?;
+        self.io
+            .next_submission()
+            .to_read(self.ns.id, addr as u64, start, count);
+        self.io.doorbell_submission(1)?;
+        self.io.next_completion().to_read()?;
+        self.io.doorbell_completion();
+        Ok(addr)
+    }
 }
 
 struct Namespace {
@@ -523,4 +535,8 @@ struct Namespace {
 
 pub fn init() -> Result<(), crate::Error> {
     unsafe { (*(&raw mut NVME)).init() }
+}
+
+pub fn read(start: u64, count: u32) -> Result<usize, crate::Error> {
+    unsafe { (*(&raw mut NVME)).read_lba(start, count) }
 }

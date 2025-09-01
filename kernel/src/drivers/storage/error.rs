@@ -1,6 +1,8 @@
 //! Error
 
 pub enum Error {
+    InvalidMBR,
+
     NVMe(super::nvme::Error),
 }
 impl From<Error> for super::super::Error {
@@ -15,9 +17,13 @@ impl From<Error> for crate::Error {
 }
 impl crate::Output for Error {
     fn output(&self) {
-        "Storage/".output();
+        "Storage".output();
         match self {
-            Error::NVMe(e) => e.output(),
+            Error::InvalidMBR => " Invalid Protective MBR at LBA 0".output(),
+            Error::NVMe(e) => {
+                "/".output();
+                e.output()
+            }
         }
     }
 }

@@ -5,6 +5,7 @@ use crate::Memory;
 use super::Error;
 
 pub mod admin;
+pub mod io;
 
 #[repr(C, packed)]
 pub struct Submission {
