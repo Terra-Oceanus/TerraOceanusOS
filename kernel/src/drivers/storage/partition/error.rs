@@ -20,7 +20,7 @@ impl From<Error> for crate::Error {
     }
 }
 impl crate::Output for Error {
-    fn output(&self) {
+    fn output(self) {
         "Partition ".output();
         match self {
             Error::InvalidGPT(part) => {

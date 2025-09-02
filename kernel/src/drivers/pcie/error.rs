@@ -16,7 +16,7 @@ impl From<Error> for crate::Error {
     }
 }
 impl crate::Output for Error {
-    fn output(&self) {
+    fn output(self) {
         "PCIe ".output();
         match self {
             Error::InvalidHeaderType => "Invalid Header Type",

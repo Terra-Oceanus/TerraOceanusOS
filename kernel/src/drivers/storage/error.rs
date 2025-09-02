@@ -15,7 +15,7 @@ impl From<Error> for crate::Error {
     }
 }
 impl crate::Output for Error {
-    fn output(&self) {
+    fn output(self) {
         "Storage/".output();
         match self {
             Error::NVMe(e) => e.output(),

@@ -7,16 +7,16 @@ pub mod frame_buffer;
 pub mod screen;
 
 pub trait Output {
-    fn output(&self);
+    fn output(self);
 }
 impl Output for usize {
-    fn output(&self) {
-        if *self == 0 {
+    fn output(self) {
+        if self == 0 {
             '0'.output();
         } else {
             // 1 << 64: 20-digit
             let mut buffer = [0u8; 20];
-            let mut n = *self;
+            let mut n = self;
             let mut i = buffer.len();
             while n > 0 {
                 i -= 1;
@@ -30,7 +30,7 @@ impl Output for usize {
     }
 }
 impl Output for u8 {
-    fn output(&self) {
+    fn output(self) {
         "0b".output();
 
         let mut zero = true;
@@ -55,7 +55,7 @@ impl Output for u8 {
     }
 }
 impl Output for u64 {
-    fn output(&self) {
+    fn output(self) {
         "0x".output();
 
         let mut zero = true;
@@ -80,12 +80,12 @@ impl Output for u64 {
     }
 }
 impl Output for bool {
-    fn output(&self) {
-        if *self { "True" } else { "False" }.output()
+    fn output(self) {
+        if self { "True" } else { "False" }.output()
     }
 }
 impl Output for char {
-    fn output(&self) {
+    fn output(self) {
         if self.is_ascii_control() {
             match self {
                 '\t' => Cursor::tab(),
@@ -93,12 +93,12 @@ impl Output for char {
                 _ => {}
             }
         } else {
-            Cursor::out_char(*self, false);
+            Cursor::out_char(self, false);
         }
     }
 }
 impl Output for &str {
-    fn output(&self) {
+    fn output(self) {
         for c in self.chars() {
             c.output();
         }

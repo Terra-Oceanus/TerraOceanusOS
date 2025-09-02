@@ -21,7 +21,7 @@ impl From<Error> for crate::Error {
     }
 }
 impl crate::Output for Error {
-    fn output(&self) {
+    fn output(self) {
         "NVMe ".output();
         match self {
             Error::InvalidAddress(entity) => {

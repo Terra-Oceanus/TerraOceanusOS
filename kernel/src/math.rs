@@ -11,7 +11,7 @@ impl Math for usize {
     }
 }
 
-pub trait Checksum: Sized {
+pub trait Checksum {
     fn checksum(&self, size: usize) -> bool {
         unsafe {
             from_raw_parts(self as *const _ as *const u8, size)

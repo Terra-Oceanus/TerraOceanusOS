@@ -7,7 +7,7 @@ pub enum Error {
     X86_64(crate::x86_64::Error),
 }
 impl crate::Output for Error {
-    fn output(&self) {
+    fn output(self) {
         "Error: ".output();
         match self {
             Error::ACPI(e) => e.output(),

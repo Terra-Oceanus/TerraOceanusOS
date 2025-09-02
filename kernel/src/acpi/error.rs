@@ -13,7 +13,7 @@ impl From<Error> for crate::Error {
     }
 }
 impl crate::Output for Error {
-    fn output(&self) {
+    fn output(self) {
         "ACPI ".output();
         match self {
             Error::InvalidAddress => "Invalid Address",

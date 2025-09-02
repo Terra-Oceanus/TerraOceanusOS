@@ -12,7 +12,7 @@ impl From<Error> for crate::Error {
     }
 }
 impl crate::Output for Error {
-    fn output(&self) {
+    fn output(self) {
         "Memory ".output();
         match self {
             Error::InvalidAllocationSize => "Invalid Allocation Size",
