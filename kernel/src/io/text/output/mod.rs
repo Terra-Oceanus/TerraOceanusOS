@@ -7,7 +7,7 @@ pub mod frame_buffer;
 pub mod screen;
 
 pub trait Output {
-    fn output(self);
+    fn out(&self);
 
     fn nibble_to_hex_char(nibble: u8) -> char {
         if nibble < 10 {
@@ -18,18 +18,18 @@ pub trait Output {
     }
 
     fn byte_to_hex_str(n: u8) {
-        Self::nibble_to_hex_char(n >> 4).output();
-        Self::nibble_to_hex_char(n & 0xF).output();
+        Self::nibble_to_hex_char(n >> 4).out();
+        Self::nibble_to_hex_char(n & 0xF).out();
     }
 }
 impl Output for usize {
-    fn output(self) {
-        if self == 0 {
-            '0'.output();
+    fn out(&self) {
+        if *self == 0 {
+            '0'.out();
         } else {
             // 1 << 64: 20-digit
             let mut buffer = [0u8; 20];
-            let mut n = self;
+            let mut n = *self;
             let mut i = buffer.len();
             while n > 0 {
                 i -= 1;
@@ -37,14 +37,14 @@ impl Output for usize {
                 n /= 10;
             }
             for &byte in &buffer[i..] {
-                (byte as char).output();
+                (byte as char).out();
             }
         }
     }
 }
 impl Output for u8 {
-    fn output(self) {
-        "0b".output();
+    fn out(&self) {
+        "0b".out();
 
         let mut zero = true;
         for i in (0..8).rev() {
@@ -56,20 +56,20 @@ impl Output for u8 {
                 zero = false;
             }
             if bit == 0 {
-                '0'.output();
+                '0'.out();
             } else {
-                '1'.output();
+                '1'.out();
             }
         }
 
         if zero {
-            '0'.output();
+            '0'.out();
         }
     }
 }
 impl Output for u64 {
-    fn output(self) {
-        "0x".output();
+    fn out(&self) {
+        "0x".out();
 
         let mut zero = true;
         for i in (0..8).rev() {
@@ -84,17 +84,17 @@ impl Output for u64 {
         }
 
         if zero {
-            '0'.output();
+            '0'.out();
         }
     }
 }
 impl Output for bool {
-    fn output(self) {
-        if self { "True" } else { "False" }.output()
+    fn out(&self) {
+        if *self { "True" } else { "False" }.out()
     }
 }
 impl Output for char {
-    fn output(self) {
+    fn out(&self) {
         if self.is_ascii_control() {
             match self {
                 '\t' => Cursor::tab(),
@@ -102,14 +102,14 @@ impl Output for char {
                 _ => {}
             }
         } else {
-            Cursor::out_char(self, false);
+            Cursor::out_char(*self, false);
         }
     }
 }
 impl Output for &str {
-    fn output(self) {
+    fn out(&self) {
         for c in self.chars() {
-            c.output();
+            c.out();
         }
     }
 }

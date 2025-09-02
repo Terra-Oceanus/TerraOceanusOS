@@ -16,21 +16,21 @@ impl From<Error> for crate::Error {
     }
 }
 impl crate::Output for Error {
-    fn output(self) {
-        "PCIe ".output();
+    fn out(&self) {
+        "PCIe ".out();
         match self {
             Error::InvalidHeaderType => "Invalid Header Type",
             Error::InvalidIndex(src) => {
-                "Invalid ".output();
-                src.output();
+                "Invalid ".out();
+                src.out();
                 " Index"
             }
             Error::InvalidRegisterValue(reg) => {
-                "Invalid ".output();
-                reg.output();
+                "Invalid ".out();
+                reg.out();
                 " Value"
             }
         }
-        .output();
+        .out();
     }
 }

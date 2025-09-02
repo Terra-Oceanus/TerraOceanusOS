@@ -20,19 +20,19 @@ impl From<Error> for crate::Error {
     }
 }
 impl crate::Output for Error {
-    fn output(self) {
-        "Partition ".output();
+    fn out(&self) {
+        "Partition ".out();
         match self {
             Error::InvalidGPT(part) => {
-                "Invalid GPT ".output();
+                "Invalid GPT ".out();
                 part
             }
             Error::InvalidMBR(part) => {
-                "Invalid Protective MBR ".output();
-                part.output();
+                "Invalid Protective MBR ".out();
+                part.out();
                 " at LBA 0"
             }
         }
-        .output();
+        .out();
     }
 }

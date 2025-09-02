@@ -19,18 +19,18 @@ use io::text::{Output, screen};
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     if let Some(loc) = info.location() {
-        "\nfile: ".output();
-        loc.file().output();
-        " line: ".output();
-        (loc.line() as usize).output();
-        " column: ".output();
-        (loc.column() as usize).output();
+        "\nfile: ".out();
+        loc.file().out();
+        " line: ".out();
+        (loc.line() as usize).out();
+        " column: ".out();
+        (loc.column() as usize).out();
     }
     if let Some(msg) = info.message().as_str() {
-        " msg: ".output();
-        msg.output();
+        " msg: ".out();
+        msg.out();
     }
-    ".\n".output();
+    ".\n".out();
 
     loop {}
 }

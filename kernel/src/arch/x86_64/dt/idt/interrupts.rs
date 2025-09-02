@@ -95,131 +95,131 @@ pub struct InterruptFrame {
 }
 
 pub fn divide_error() {
-    "#DE".output();
+    "#DE".out();
 
     loop {}
 }
 
 pub fn debug_exception() {
-    "#DB".output();
+    "#DB".out();
 
     loop {}
 }
 
 pub fn nmi_interrupt() {
-    "NMI".output();
+    "NMI".out();
 
     loop {}
 }
 
 pub fn breakpoint() {
-    "#BP".output();
+    "#BP".out();
 
     loop {}
 }
 
 pub fn overflow() {
-    "#OF".output();
+    "#OF".out();
 
     loop {}
 }
 
 pub fn bound_range_exceeded() {
-    "#BR".output();
+    "#BR".out();
 
     loop {}
 }
 
 pub fn invalid_opcode() {
-    "#UD".output();
+    "#UD".out();
 
     loop {}
 }
 
 pub fn device_not_available() {
-    "#NM".output();
+    "#NM".out();
 
     loop {}
 }
 
 pub fn double_fault() {
-    "#DF".output();
+    "#DF".out();
 
     loop {}
 }
 
 pub fn invalid_tss() {
-    "#TS".output();
+    "#TS".out();
 
     loop {}
 }
 
 pub fn segment_not_present() {
-    "#NP".output();
+    "#NP".out();
 
     loop {}
 }
 
 pub fn stack_segment_fault() {
-    "#SS".output();
+    "#SS".out();
 
     loop {}
 }
 
 pub fn general_protection(frame: InterruptFrame, error_code: u64) {
-    "\nFault: General Protection Exception ".output();
+    "\nFault: General Protection Exception ".out();
     if error_code != 0 {
-        "with error code(".output();
-        error_code.output();
-        ") ".output();
+        "with error code(".out();
+        error_code.out();
+        ") ".out();
     }
-    "at ".output();
-    frame.cs.output();
-    ":".output();
-    frame.rip.output();
-    ".\n".output();
+    "at ".out();
+    frame.cs.out();
+    ":".out();
+    frame.rip.out();
+    ".\n".out();
 
     loop {}
 }
 
 pub fn page_fault() {
-    "#PF".output();
+    "#PF".out();
 
     loop {}
 }
 
 pub fn x87_fpu_floating_point_error() {
-    "#MF".output();
+    "#MF".out();
 
     loop {}
 }
 
 pub fn alignment_check() {
-    "#AC".output();
+    "#AC".out();
 
     loop {}
 }
 
 pub fn machine_check() {
-    "#MC".output();
+    "#MC".out();
 
     loop {}
 }
 
 pub fn simd_floating_point_exception() {
-    "#XM".output();
+    "#XM".out();
 
     loop {}
 }
 
 pub fn virtualization_exception() {
-    "#VE".output();
+    "#VE".out();
 
     loop {}
 }
 
 pub fn control_protection_exception() {
-    "#CP".output();
+    "#CP".out();
 
     loop {}
 }

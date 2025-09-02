@@ -10,11 +10,11 @@ impl From<Error> for crate::Error {
     }
 }
 impl crate::Output for Error {
-    fn output(self) {
-        "Drivers/".output();
+    fn out(&self) {
+        "Drivers/".out();
         match self {
-            Error::PCIe(e) => e.output(),
-            Error::Storage(e) => e.output(),
+            Error::PCIe(e) => e.out(),
+            Error::Storage(e) => e.out(),
         }
     }
 }

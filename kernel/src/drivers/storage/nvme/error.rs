@@ -21,24 +21,24 @@ impl From<Error> for crate::Error {
     }
 }
 impl crate::Output for Error {
-    fn output(self) {
-        "NVMe ".output();
+    fn out(&self) {
+        "NVMe ".out();
         match self {
             Error::InvalidAddress(entity) => {
-                "Invalid ".output();
-                entity.output();
+                "Invalid ".out();
+                entity.out();
                 " Address"
             }
             Error::InvalidRegisterValue(reg) => {
-                "Invalid ".output();
-                reg.output();
+                "Invalid ".out();
+                reg.out();
                 " Value"
             }
             Error::Queue(msg) => {
-                "Queue ".output();
+                "Queue ".out();
                 msg
             }
         }
-        .output();
+        .out();
     }
 }

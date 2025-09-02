@@ -12,21 +12,21 @@ pub struct GUID {
     node: [u8; 6],
 }
 impl Output for GUID {
-    fn output(self) {
+    fn out(&self) {
         Self::byte_to_hex_str((self.time_low >> 24) as u8);
         Self::byte_to_hex_str((self.time_low >> 16) as u8);
         Self::byte_to_hex_str((self.time_low >> 8) as u8);
         Self::byte_to_hex_str(self.time_low as u8);
-        '-'.output();
+        '-'.out();
         Self::byte_to_hex_str((self.time_mid >> 8) as u8);
         Self::byte_to_hex_str(self.time_mid as u8);
-        '-'.output();
+        '-'.out();
         Self::byte_to_hex_str((self.time_high_and_version >> 8) as u8);
         Self::byte_to_hex_str(self.time_high_and_version as u8);
-        '-'.output();
+        '-'.out();
         Self::byte_to_hex_str(self.clock_seq_high_and_reserved);
         Self::byte_to_hex_str(self.clock_seq_low);
-        '-'.output();
+        '-'.out();
         Self::byte_to_hex_str(self.node[0]);
         Self::byte_to_hex_str(self.node[1]);
         Self::byte_to_hex_str(self.node[2]);

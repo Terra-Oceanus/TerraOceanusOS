@@ -15,11 +15,11 @@ impl From<Error> for crate::Error {
     }
 }
 impl crate::Output for Error {
-    fn output(self) {
-        "Storage/".output();
+    fn out(&self) {
+        "Storage/".out();
         match self {
-            Error::NVMe(e) => e.output(),
-            Error::Partition(e) => e.output(),
+            Error::NVMe(e) => e.out(),
+            Error::Partition(e) => e.out(),
         }
     }
 }
