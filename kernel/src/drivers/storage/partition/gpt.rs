@@ -79,9 +79,6 @@ impl Header {
 }
 
 struct PartitionEntry {
-    /// - 00000000-0000-0000-0000-000000000000: Unused
-    /// - 024DEE41-33E7-11D3-9D69-0008C781F39F: Legacy MBR Partition
-    /// - C12A7328-F81F-11D2-BA4B-00A0C93EC93B: EFI System Partition
     partition_type_guid: GUID,
 
     unique_partition_guid: GUID,
@@ -95,6 +92,7 @@ struct PartitionEntry {
     /// - Bits 3 ..= 63: Reserved
     attributes: u64,
 
+    /// Null-terminated string
     partition_name: [u8; 72],
 }
 impl Checksum for PartitionEntry {}
@@ -105,7 +103,7 @@ pub fn validate() -> Result<(), crate::Error> {
     let entries = primary.validate(1)?;
     for i in 0..primary.number_of_partition_entries as usize {
         let entry = PartitionEntry::get_ref(entries + i * primary.size_of_partition_entry as usize);
-        if entry.partition_type_guid.is_null() {
+        if entry.partition_type_guid == GUID::UNUSED_PARTITION {
             continue;
         }
     }

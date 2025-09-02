@@ -67,6 +67,6 @@ pub trait Checksum {
         for &byte in unsafe { from_raw_parts(self as *const _ as *const u8, size) } {
             crc = (crc >> 8) ^ TABLE[((crc as u8) ^ byte) as usize];
         }
-        crc ^ 0xFFFF_FFFF
+        !crc
     }
 }
