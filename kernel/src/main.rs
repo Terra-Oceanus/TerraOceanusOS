@@ -70,7 +70,7 @@ pub extern "C" fn _start() -> ! {
     ) {
         Ok(_) => {} // screen::clear(),
         Err(e) => {
-            e.output();
+            e.out();
             loop {}
         }
     }

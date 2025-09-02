@@ -11,6 +11,6 @@ pub fn init() -> Result<(), crate::Error> {
     partition::validate()
 }
 
-pub fn read(start: u64, count: u32) -> Result<usize, crate::Error> {
-    nvme::read(start, count)
+pub fn read(start: u64, size: usize) -> Result<usize, crate::Error> {
+    nvme::read(start, size)
 }

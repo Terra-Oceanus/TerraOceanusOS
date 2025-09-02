@@ -61,26 +61,18 @@ impl PartitionRecord {
     }
 
     fn is_null(&self) -> bool {
-        if self.boot_indicator != 0 {
-            return false;
-        }
-        if self.starting_chs != [0, 0, 0] {
-            return false;
-        }
-        if self.os_type != 0 {
-            return false;
-        }
-        if self.ending_chs != [0, 0, 0] {
-            return false;
-        }
-        if self.starting_lba != 0 {
-            return false;
-        }
-        self.size_in_lba == 0
+        self.boot_indicator == 0
+            && self.starting_chs == [0; 3]
+            && self.os_type == 0
+            && self.ending_chs == [0; 3]
+            && self.starting_lba == 0
+            && self.size_in_lba == 0
     }
 }
 
-pub fn validate(addr: usize) -> Result<(), crate::Error> {
-    MBR::get_ref(addr).validate()?.delete()?;
+pub fn validate() -> Result<(), crate::Error> {
+    MBR::get_ref(super::super::read(0, size_of::<MBR>())?)
+        .validate()?
+        .delete()?;
     Ok(())
 }
