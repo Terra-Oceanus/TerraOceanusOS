@@ -10,6 +10,7 @@ mod error;
 mod io;
 mod math;
 mod memory;
+mod types;
 
 use arch::x86_64;
 use error::Error;

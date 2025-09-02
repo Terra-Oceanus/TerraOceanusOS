@@ -1,6 +1,6 @@
 //! Identify Controller Data Structure
 
-use crate::memory::Memory;
+use crate::{memory::Memory, types::guid::GUID};
 
 use super::super::super::super::Error;
 
@@ -182,7 +182,7 @@ pub struct Data {
     endgid: u16,
 
     /// Namespace Globally Unique Identifier
-    nguid: u128,
+    nguid: GUID,
 
     /// IEEE Extended Unique Identifier
     eui64: u64,

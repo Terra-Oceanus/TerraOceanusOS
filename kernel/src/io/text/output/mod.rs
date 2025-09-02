@@ -8,6 +8,19 @@ pub mod screen;
 
 pub trait Output {
     fn output(self);
+
+    fn nibble_to_hex_char(nibble: u8) -> char {
+        if nibble < 10 {
+            (b'0' + nibble) as char
+        } else {
+            (b'A' + (nibble - 10)) as char
+        }
+    }
+
+    fn byte_to_hex_str(n: u8) {
+        Self::nibble_to_hex_char(n >> 4).output();
+        Self::nibble_to_hex_char(n & 0xF).output();
+    }
 }
 impl Output for usize {
     fn output(self) {
@@ -59,19 +72,15 @@ impl Output for u64 {
         "0x".output();
 
         let mut zero = true;
-        for i in (0..16).rev() {
-            let nibble = ((self >> (i * 4)) & 0xF) as u8;
+        for i in (0..8).rev() {
+            let byte = (self >> (i * 8)) as u8;
             if zero {
-                if nibble == 0 && i != 0 {
+                if byte == 0 && i != 0 {
                     continue;
                 }
                 zero = false;
             }
-            if nibble < 10 {
-                ((b'0' + nibble) as char).output();
-            } else {
-                ((b'A' + (nibble - 10)) as char).output();
-            }
+            Self::byte_to_hex_str(byte);
         }
 
         if zero {

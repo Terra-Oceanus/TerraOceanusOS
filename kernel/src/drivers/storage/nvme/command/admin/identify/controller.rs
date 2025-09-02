@@ -1,6 +1,6 @@
 //! Identify Controller Data Structure
 
-use crate::memory::Memory;
+use crate::{memory::Memory, types::guid::GUID};
 
 impl super::super::super::Submission {
     /// - CDW10.CNS: 0x01
@@ -141,7 +141,7 @@ struct Data {
     cntrltype: u8,
 
     /// FRU Globally Unique Identifier
-    fguid: u128,
+    fguid: GUID,
 
     /// Command Retry Delay Time 1
     crdt1: u16,

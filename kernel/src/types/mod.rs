@@ -1,0 +1,3 @@
+//! Types
+
+pub mod guid;
