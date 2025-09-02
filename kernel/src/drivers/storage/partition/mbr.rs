@@ -71,7 +71,7 @@ impl PartitionRecord {
 }
 
 pub fn validate() -> Result<(), crate::Error> {
-    MBR::get_ref(super::super::read(0, size_of::<MBR>())?)
+    MBR::get_ref(super::super::read(0, 1, 0)?)
         .validate()?
         .delete()?;
     Ok(())

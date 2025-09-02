@@ -2,7 +2,7 @@
 
 mod error;
 pub mod pcie;
-mod storage;
+pub mod storage;
 
 pub use error::Error;
 

@@ -515,13 +515,17 @@ impl NVMe {
         Ok(())
     }
 
-    fn read_lba(&mut self, start: u64, size: usize) -> Result<usize, crate::Error> {
+    fn read_lba(&mut self, start: u64, count: u32, size: usize) -> Result<usize, crate::Error> {
         let addr = allocate(size)?;
         self.io.next_submission().to_read(
             self.ns.id,
             addr as u64,
             start,
-            ((size + self.ns.lba_size - 1) / self.ns.lba_size) as u32,
+            if count != 0 {
+                count
+            } else {
+                ((size + self.ns.lba_size - 1) / self.ns.lba_size) as u32
+            },
         );
         self.io.doorbell_submission(1)?;
         self.io.next_completion().to_read()?;
@@ -541,6 +545,6 @@ pub fn init() -> Result<(), crate::Error> {
     unsafe { (*(&raw mut NVME)).init() }
 }
 
-pub fn read(start: u64, size: usize) -> Result<usize, crate::Error> {
-    unsafe { (*(&raw mut NVME)).read_lba(start, size) }
+pub fn read(start: u64, count: u32, size: usize) -> Result<usize, crate::Error> {
+    unsafe { (*(&raw mut NVME)).read_lba(start, count, size) }
 }

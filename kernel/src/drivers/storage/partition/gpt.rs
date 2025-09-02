@@ -60,14 +60,14 @@ impl Header {
 
         let entries_size =
             (self.number_of_partition_entries * self.size_of_partition_entry) as usize;
-        let entries = super::super::read(self.partition_entry_lba, entries_size)?;
+        let entries = super::super::read(self.partition_entry_lba, 0, entries_size)?;
         let entry = PartitionEntry::get_ref(entries);
         if self.partition_entry_array_crc32 != entry.crc32(entries_size) {
             return Err(Error::InvalidGPT("Partition Entry Array CRC32 Checksum").into());
         }
 
         if lba == 1 {
-            let backup = Self::get_mut(super::super::read(self.alternate_lba, 1)?);
+            let backup = Self::get_mut(super::super::read(self.alternate_lba, 1, 0)?);
             // let _ = backup.validate(self.alternate_lba)?;
             backup.delete()?;
         } else {
@@ -99,7 +99,7 @@ impl Checksum for PartitionEntry {}
 impl Memory for PartitionEntry {}
 
 pub fn validate() -> Result<(), crate::Error> {
-    let primary = Header::get_mut(super::super::read(1, size_of::<Header>())?);
+    let primary = Header::get_mut(super::super::read(1, 1, 0)?);
     let entries = primary.validate(1)?;
     for i in 0..primary.number_of_partition_entries as usize {
         let entry = PartitionEntry::get_ref(entries + i * primary.size_of_partition_entry as usize);
