@@ -21,12 +21,12 @@ impl From<Error> for crate::Error {
     }
 }
 impl crate::Output for Error {
-    fn output(&self) {
-        "IOAPIC ".output();
+    fn out(&self) {
+        "IOAPIC ".out();
         match self {
             Error::InvalidGSIIndex => "Invalid GSI Index",
             Error::MaxCountReached => "Max Count Reached",
         }
-        .output();
+        .out();
     }
 }

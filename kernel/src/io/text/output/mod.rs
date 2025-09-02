@@ -7,12 +7,25 @@ pub mod frame_buffer;
 pub mod screen;
 
 pub trait Output {
-    fn output(&self);
+    fn out(&self);
+
+    fn nibble_to_hex_char(nibble: u8) -> char {
+        if nibble < 10 {
+            (b'0' + nibble) as char
+        } else {
+            (b'A' + (nibble - 10)) as char
+        }
+    }
+
+    fn byte_to_hex_str(n: u8) {
+        Self::nibble_to_hex_char(n >> 4).out();
+        Self::nibble_to_hex_char(n & 0xF).out();
+    }
 }
 impl Output for usize {
-    fn output(&self) {
+    fn out(&self) {
         if *self == 0 {
-            '0'.output();
+            '0'.out();
         } else {
             // 1 << 64: 20-digit
             let mut buffer = [0u8; 20];
@@ -24,14 +37,14 @@ impl Output for usize {
                 n /= 10;
             }
             for &byte in &buffer[i..] {
-                (byte as char).output();
+                (byte as char).out();
             }
         }
     }
 }
 impl Output for u8 {
-    fn output(&self) {
-        "0b".output();
+    fn out(&self) {
+        "0b".out();
 
         let mut zero = true;
         for i in (0..8).rev() {
@@ -43,49 +56,45 @@ impl Output for u8 {
                 zero = false;
             }
             if bit == 0 {
-                '0'.output();
+                '0'.out();
             } else {
-                '1'.output();
+                '1'.out();
             }
         }
 
         if zero {
-            '0'.output();
+            '0'.out();
         }
     }
 }
 impl Output for u64 {
-    fn output(&self) {
-        "0x".output();
+    fn out(&self) {
+        "0x".out();
 
         let mut zero = true;
-        for i in (0..16).rev() {
-            let nibble = ((self >> (i * 4)) & 0xF) as u8;
+        for i in (0..8).rev() {
+            let byte = (self >> (i * 8)) as u8;
             if zero {
-                if nibble == 0 && i != 0 {
+                if byte == 0 && i != 0 {
                     continue;
                 }
                 zero = false;
             }
-            if nibble < 10 {
-                ((b'0' + nibble) as char).output();
-            } else {
-                ((b'A' + (nibble - 10)) as char).output();
-            }
+            Self::byte_to_hex_str(byte);
         }
 
         if zero {
-            '0'.output();
+            '0'.out();
         }
     }
 }
 impl Output for bool {
-    fn output(&self) {
-        if *self { "True" } else { "False" }.output()
+    fn out(&self) {
+        if *self { "True" } else { "False" }.out()
     }
 }
 impl Output for char {
-    fn output(&self) {
+    fn out(&self) {
         if self.is_ascii_control() {
             match self {
                 '\t' => Cursor::tab(),
@@ -98,15 +107,15 @@ impl Output for char {
     }
 }
 impl Output for &str {
-    fn output(&self) {
+    fn out(&self) {
         for c in self.chars() {
-            c.output();
+            c.out();
         }
     }
 }
 
 pub fn init(
-    frame_buffer_base: u64,
+    frame_buffer_base: usize,
     screen_width: usize,
     screen_height: usize,
     screen_stride: usize,

@@ -1,14 +1,14 @@
 //! Differentiated System Description Table
 
-use crate::traits::FromAddr;
+use crate::memory::Memory;
 
 use super::{Error, Header};
 
 pub const SIGNATURE: &[u8; 4] = b"DSDT";
 
-static mut ADDR: u64 = 0;
+static mut ADDR: usize = 0;
 
-pub fn set_config(addr: u64) {
+pub fn set_config(addr: usize) {
     unsafe { ADDR = addr }
 }
 
@@ -18,7 +18,7 @@ struct DSDT {
 
     definition_block: [u8; 0],
 }
-impl FromAddr for DSDT {}
+impl Memory for DSDT {}
 impl DSDT {
     fn init(&self) -> Result<(), Error> {
         self.header.init(*SIGNATURE)

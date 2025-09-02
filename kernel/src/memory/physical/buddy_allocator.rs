@@ -26,7 +26,7 @@ impl PageInfo {
 }
 
 pub struct BuddyAllocator {
-    page_count: u32,
+    page_count: usize,
 
     max_order: u8,
 
@@ -44,9 +44,9 @@ impl BuddyAllocator {
         }
     }
 
-    pub fn pre_init(memory_size: u64) -> u64 {
+    pub fn pre_init(memory_size: usize) -> usize {
         unsafe {
-            BUDDY_ALLOCATOR.page_count = ((memory_size + PAGE_SIZE - 1) / PAGE_SIZE) as u32;
+            BUDDY_ALLOCATOR.page_count = (memory_size + PAGE_SIZE - 1) / PAGE_SIZE;
             BUDDY_ALLOCATOR.max_order = {
                 let mut order = 0;
                 let mut pages = BUDDY_ALLOCATOR.page_count;
@@ -56,22 +56,21 @@ impl BuddyAllocator {
                 }
                 order
             };
-            (size_of::<PageInfo>() * BUDDY_ALLOCATOR.page_count as usize
-                + size_of::<usize>() * (BUDDY_ALLOCATOR.max_order as usize + 1)) as u64
+            size_of::<PageInfo>() * BUDDY_ALLOCATOR.page_count
+                + size_of::<usize>() * (BUDDY_ALLOCATOR.max_order as usize + 1)
         }
     }
 
-    pub fn init(addr: u64) {
+    pub fn init(addr: usize) {
         unsafe {
             BUDDY_ALLOCATOR.page_info =
-                from_raw_parts_mut(addr as *mut PageInfo, BUDDY_ALLOCATOR.page_count as usize);
-            for i in 0..(BUDDY_ALLOCATOR.page_count as usize) {
+                from_raw_parts_mut(addr as *mut PageInfo, BUDDY_ALLOCATOR.page_count);
+            for i in 0..(BUDDY_ALLOCATOR.page_count) {
                 BUDDY_ALLOCATOR.page_info[i] = PageInfo::null();
             }
 
             BUDDY_ALLOCATOR.free_list = from_raw_parts_mut(
-                (addr + size_of::<PageInfo>() as u64 * BUDDY_ALLOCATOR.page_count as u64)
-                    as *mut usize,
+                (addr + size_of::<PageInfo>() * BUDDY_ALLOCATOR.page_count) as *mut usize,
                 BUDDY_ALLOCATOR.max_order as usize + 1,
             );
             for i in 0..=(BUDDY_ALLOCATOR.max_order as usize) {
@@ -80,22 +79,22 @@ impl BuddyAllocator {
         }
     }
 
-    pub fn add(addr: u64, mut count: u64) -> Result<(), Error> {
-        let mut index = (addr / PAGE_SIZE) as usize;
+    pub fn add(addr: usize, mut count: usize) -> Result<(), Error> {
+        let mut index = addr / PAGE_SIZE;
         while count > 0 {
-            let mut order = unsafe { BUDDY_ALLOCATOR.max_order } as usize;
+            let mut order = unsafe { BUDDY_ALLOCATOR.max_order };
             while order > 0 && ((1 << order) > count || (index & ((1 << order) - 1)) != 0) {
                 order -= 1;
             }
-            if index + (1 << order) > unsafe { BUDDY_ALLOCATOR.page_count } as usize {
+            if index + (1 << order) > unsafe { BUDDY_ALLOCATOR.page_count } {
                 return Err(Error::InvalidIndex);
             }
 
             unsafe {
                 BUDDY_ALLOCATOR.page_info[index].state = true;
-                BUDDY_ALLOCATOR.page_info[index].order = order as u8;
-                BUDDY_ALLOCATOR.page_info[index].next = BUDDY_ALLOCATOR.free_list[order];
-                BUDDY_ALLOCATOR.free_list[order] = index;
+                BUDDY_ALLOCATOR.page_info[index].order = order;
+                BUDDY_ALLOCATOR.page_info[index].next = BUDDY_ALLOCATOR.free_list[order as usize];
+                BUDDY_ALLOCATOR.free_list[order as usize] = index;
             }
 
             index += 1 << order;
@@ -104,7 +103,7 @@ impl BuddyAllocator {
         Ok(())
     }
 
-    pub fn allocate(size: u64) -> Result<u64, Error> {
+    pub fn allocate(size: usize) -> Result<usize, Error> {
         let pages = (size + PAGE_SIZE - 1) / PAGE_SIZE;
         if pages == 0 || pages > (1 << unsafe { BUDDY_ALLOCATOR.max_order }) {
             return Err(Error::InvalidAllocationSize);
@@ -117,26 +116,27 @@ impl BuddyAllocator {
 
         let mut current_order = order;
         unsafe {
-            while current_order as u8 <= BUDDY_ALLOCATOR.max_order {
-                let head = BUDDY_ALLOCATOR.free_list[current_order];
+            while current_order <= BUDDY_ALLOCATOR.max_order {
+                let head = BUDDY_ALLOCATOR.free_list[current_order as usize];
                 if head != 0 {
-                    BUDDY_ALLOCATOR.free_list[current_order] = BUDDY_ALLOCATOR.page_info[head].next;
+                    BUDDY_ALLOCATOR.free_list[current_order as usize] =
+                        BUDDY_ALLOCATOR.page_info[head].next;
 
                     while current_order > order {
                         current_order -= 1;
                         let buddy = head + (1 << current_order);
                         BUDDY_ALLOCATOR.page_info[buddy].state = true;
-                        BUDDY_ALLOCATOR.page_info[buddy].order = current_order as u8;
+                        BUDDY_ALLOCATOR.page_info[buddy].order = current_order;
                         BUDDY_ALLOCATOR.page_info[buddy].next =
-                            BUDDY_ALLOCATOR.free_list[current_order];
-                        BUDDY_ALLOCATOR.free_list[current_order] = buddy;
+                            BUDDY_ALLOCATOR.free_list[current_order as usize];
+                        BUDDY_ALLOCATOR.free_list[current_order as usize] = buddy;
                     }
 
                     BUDDY_ALLOCATOR.page_info[head].state = false;
-                    BUDDY_ALLOCATOR.page_info[head].order = order as u8;
+                    BUDDY_ALLOCATOR.page_info[head].order = order;
                     BUDDY_ALLOCATOR.page_info[head].next = 0;
 
-                    return Ok(head as u64 * PAGE_SIZE);
+                    return Ok(head * PAGE_SIZE);
                 }
                 current_order += 1;
             }
@@ -144,32 +144,33 @@ impl BuddyAllocator {
         Err(Error::OutOfMemory)
     }
 
-    pub fn deallocate(addr: u64) -> Result<(), Error> {
-        let index = (addr / PAGE_SIZE) as usize;
+    pub fn deallocate(addr: usize) -> Result<(), Error> {
+        let index = addr / PAGE_SIZE;
         unsafe {
-            if index >= BUDDY_ALLOCATOR.page_count as usize {
+            if index >= BUDDY_ALLOCATOR.page_count {
                 return Err(Error::InvalidIndex);
             }
 
             let mut index = index;
             BUDDY_ALLOCATOR.page_info[index].state = true;
 
-            let mut order = BUDDY_ALLOCATOR.page_info[index].order as usize;
-            while order < BUDDY_ALLOCATOR.max_order as usize {
+            let mut order = BUDDY_ALLOCATOR.page_info[index].order;
+            while order < BUDDY_ALLOCATOR.max_order {
                 let buddy = index ^ (1 << order);
 
                 if !BUDDY_ALLOCATOR.page_info[buddy].state
-                    || BUDDY_ALLOCATOR.page_info[buddy].order != order as u8
+                    || BUDDY_ALLOCATOR.page_info[buddy].order != order
                 {
                     break;
                 }
 
                 let mut prev = 0;
-                let mut curr = BUDDY_ALLOCATOR.free_list[order];
+                let mut curr = BUDDY_ALLOCATOR.free_list[order as usize];
                 while curr != 0 {
                     if curr == buddy {
                         if prev == 0 {
-                            BUDDY_ALLOCATOR.free_list[order] = BUDDY_ALLOCATOR.page_info[curr].next;
+                            BUDDY_ALLOCATOR.free_list[order as usize] =
+                                BUDDY_ALLOCATOR.page_info[curr].next;
                         } else {
                             BUDDY_ALLOCATOR.page_info[prev].next =
                                 BUDDY_ALLOCATOR.page_info[curr].next;
@@ -183,9 +184,9 @@ impl BuddyAllocator {
                 index = if index < buddy { index } else { buddy };
                 order += 1;
             }
-            BUDDY_ALLOCATOR.page_info[index].order = order as u8;
-            BUDDY_ALLOCATOR.page_info[index].next = BUDDY_ALLOCATOR.free_list[order];
-            BUDDY_ALLOCATOR.free_list[order] = index;
+            BUDDY_ALLOCATOR.page_info[index].order = order;
+            BUDDY_ALLOCATOR.page_info[index].next = BUDDY_ALLOCATOR.free_list[order as usize];
+            BUDDY_ALLOCATOR.free_list[order as usize] = index;
         }
         Ok(())
     }

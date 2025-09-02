@@ -5,14 +5,14 @@ use core::{
     ptr::{self, write_bytes, write_volatile},
 };
 
-use crate::{memory::physical::allocate, traits::FromAddr};
+use crate::{memory::Memory, memory::physical::allocate};
 
 use super::super::command::Completion as Command;
 
 const ENTRY_SIZE: usize = 16;
 
 pub struct Completion {
-    addr: u64,
+    addr: usize,
     size: u16,
 
     head: u16,
@@ -31,19 +31,19 @@ impl Completion {
         }
     }
 
-    pub fn init(&mut self, size: u16, doorbell: u64) -> Result<u64, crate::Error> {
-        self.addr = allocate(size as u64 * ENTRY_SIZE as u64)?;
+    pub fn init(&mut self, size: u16, doorbell: usize) -> Result<usize, crate::Error> {
+        self.addr = allocate(size as usize * ENTRY_SIZE)?;
         self.size = size;
         unsafe { write_bytes(self.addr as *mut Command, 0, self.size as usize) };
         self.doorbell = doorbell as *mut u32;
         Ok(self.addr)
     }
 
-    pub fn dequeue(&mut self) -> &'static Command {
-        let command = loop {
-            let command = Command::get_ref(self.addr + (self.head as u64 * ENTRY_SIZE as u64));
-            if command.phase() == self.phase {
-                break command;
+    pub fn next_cmd(&mut self) -> &'static mut Command {
+        let cmd = loop {
+            let cmd = Command::get_mut(self.addr + (self.head as usize * ENTRY_SIZE));
+            if cmd.phase() == self.phase {
+                break cmd;
             }
             spin_loop();
         };
@@ -55,8 +55,10 @@ impl Completion {
                 self.head + 1
             }
         };
-        unsafe { write_volatile(self.doorbell, self.head as u32) };
+        cmd
+    }
 
-        command
+    pub fn doorbell(&mut self) {
+        unsafe { write_volatile(self.doorbell, self.head as u32) };
     }
 }

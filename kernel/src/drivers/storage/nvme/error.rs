@@ -1,9 +1,9 @@
 //! Error
 
 pub enum Error {
-    InvalidAddress,
-    InvalidCapability,
+    InvalidAddress(&'static str),
     InvalidRegisterValue(&'static str),
+    Queue(&'static str),
 }
 impl From<Error> for super::super::Error {
     fn from(err: Error) -> Self {
@@ -21,17 +21,24 @@ impl From<Error> for crate::Error {
     }
 }
 impl crate::Output for Error {
-    fn output(&self) {
-        "NVMe ".output();
+    fn out(&self) {
+        "NVMe ".out();
         match self {
-            Error::InvalidAddress => "Invalid Address",
+            Error::InvalidAddress(entity) => {
+                "Invalid ".out();
+                entity.out();
+                " Address"
+            }
             Error::InvalidRegisterValue(reg) => {
-                "Invalid ".output();
-                reg.output();
+                "Invalid ".out();
+                reg.out();
                 " Value"
             }
-            Error::InvalidCapability => "Invalid Capability",
+            Error::Queue(msg) => {
+                "Queue ".out();
+                msg
+            }
         }
-        .output();
+        .out();
     }
 }

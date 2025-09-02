@@ -4,8 +4,8 @@ use core::ptr::addr_of;
 
 static mut TASK_STATE_SEGMENT: TSS = TSS::null();
 
-pub fn get_addr() -> u64 {
-    addr_of!(TASK_STATE_SEGMENT) as *const TSS as u64
+pub fn get_addr() -> usize {
+    addr_of!(TASK_STATE_SEGMENT) as *const TSS as usize
 }
 
 #[repr(C, packed)]

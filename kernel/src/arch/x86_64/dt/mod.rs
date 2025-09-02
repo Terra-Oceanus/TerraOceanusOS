@@ -9,10 +9,10 @@ struct Descriptor {
     offset: u64,
 }
 impl Descriptor {
-    fn new<T>(addr: u64) -> Self {
+    fn new<T>(addr: usize) -> Self {
         Self {
             size: size_of::<T>() as u16 - 1,
-            offset: addr,
+            offset: addr as u64,
         }
     }
 }

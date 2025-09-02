@@ -5,7 +5,7 @@ use core::ptr;
 use super::super::Error;
 
 pub struct MSIX {
-    pub addr: u64,
+    pub addr: usize,
 
     tables: *mut Table,
     table_count: usize,
@@ -17,7 +17,7 @@ impl MSIX {
     /// - Bits 11 ..= 13: Reserved
     /// - Bit 14: Function Mask
     /// - Bit 15: MSI-X Enable
-    const MESSAGE_CONTROL: u64 = 0x02;
+    const MESSAGE_CONTROL: usize = 0x02;
 
     /// - Bits 0 ..= 2: Table BIR
     ///   - 0: Base Address Register 0x10
@@ -28,11 +28,11 @@ impl MSIX {
     ///   - 5: Base Address Register 0x24
     ///   - 6 ..= 7: Reserved
     /// - Bits 3 ..= 31: Table Offset
-    const TABLE: u64 = 0x04;
+    const TABLE: usize = 0x04;
 
     /// - Bits 0 ..= 2: PBA BIR
     /// - Bits 3 ..= 31: PBA Offset
-    const PBA: u64 = 0x08;
+    const PBA: usize = 0x08;
 
     pub const fn null() -> Self {
         Self {
@@ -59,10 +59,10 @@ impl MSIX {
         }
     }
 
-    pub fn set_tables(&mut self, addr: u64) {
+    pub fn set_tables(&mut self, addr: usize) {
         self.tables = (addr
-            + (unsafe { ((self.addr + Self::TABLE) as *mut u32).read_volatile() } & !0b111) as u64)
-            as *mut Table;
+            + (unsafe { ((self.addr + Self::TABLE) as *mut u32).read_volatile() } & !0b111)
+                as usize) as *mut Table;
         self.table_count =
             (unsafe { ((self.addr + Self::MESSAGE_CONTROL) as *mut u16).read_volatile() }
                 & 0b111_1111_1111) as usize;
@@ -87,11 +87,11 @@ struct Table {
     /// - Bit 2: DM for Destination Mode
     ///   - 0 if RH is set: Logical
     ///   - 1 if RH is set: Physical
-    ///   - Ignored if RH is clear
+    ///   - Ignored if RH is cleared
     /// - Bit 3: RH for Redirection Hint Indication
     /// - Bits 4 ..= 11: Reserved
     /// - Bits 12 ..= 19: Destination ID
-    ///   - 0xFF if RH is set & DM is clear
+    ///   - 0xFF if RH is set & DM is cleared
     /// - Bits 20 ..= 31: 0xFEE
     /// - Bits 32 ..= 63: Reserved
     message_address: u64,
@@ -110,7 +110,7 @@ struct Table {
     /// - Bit 14: Level
     ///   - 0 if Trigger Mode is set: Deassert
     ///   - 1 if Trigger Mode is set: Assert
-    ///   - Ignored if Trigger Mode is clear
+    ///   - Ignored if Trigger Mode is cleared
     /// - Bit 15: Trigger Mode
     ///   - 0: Edge
     ///   - 1: Level

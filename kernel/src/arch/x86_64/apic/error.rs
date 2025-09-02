@@ -14,10 +14,10 @@ impl From<Error> for crate::Error {
     }
 }
 impl crate::Output for Error {
-    fn output(&self) {
-        "APIC/".output();
+    fn out(&self) {
+        "APIC/".out();
         match self {
-            Error::IOAPIC(e) => e.output(),
+            Error::IOAPIC(e) => e.out(),
         }
     }
 }

@@ -1,10 +1,10 @@
 //! Root System Description Pointer
 
-use crate::traits::FromAddr;
+use crate::{math::Checksum, memory::Memory};
 
-use super::{Checksum, Error};
+use super::Error;
 
-static mut ADDR: u64 = 0;
+static mut ADDR: usize = 0;
 
 #[repr(C, packed)]
 struct RSDP1_0 {
@@ -22,8 +22,8 @@ struct RSDP1_0 {
     /// Deprecated
     rsdt_address: u32,
 }
-impl FromAddr for RSDP1_0 {}
 impl Checksum for RSDP1_0 {}
+impl Memory for RSDP1_0 {}
 impl RSDP1_0 {
     fn init(&self) -> Result<(), Error> {
         if self.signature != *b"RSD PTR " {
@@ -51,10 +51,10 @@ struct RSDP {
 
     reserved: [u8; 3],
 }
-impl FromAddr for RSDP {}
 impl Checksum for RSDP {}
+impl Memory for RSDP {}
 impl RSDP {
-    fn init(&self) -> Result<u64, Error> {
+    fn init(&self) -> Result<usize, Error> {
         self.rsdp1_0.init()?;
         if self.length != size_of::<Self>() as u32 {
             return Err(Error::InvalidLength);
@@ -62,11 +62,11 @@ impl RSDP {
         if !self.checksum(self.length as usize) {
             return Err(Error::InvalidChecksum);
         }
-        Ok(self.xsdt_address)
+        Ok(self.xsdt_address as usize)
     }
 }
 
-pub fn init(addr: u64) -> Result<u64, Error> {
+pub fn init(addr: usize) -> Result<usize, Error> {
     if addr == 0 {
         return Err(Error::InvalidAddress);
     }

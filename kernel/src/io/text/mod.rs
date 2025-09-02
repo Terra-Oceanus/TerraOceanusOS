@@ -9,7 +9,7 @@ pub use input::keyboard;
 pub use output::{Output, screen};
 
 pub fn init(
-    frame_buffer_base: u64,
+    frame_buffer_base: usize,
     screen_width: usize,
     screen_height: usize,
     screen_stride: usize,

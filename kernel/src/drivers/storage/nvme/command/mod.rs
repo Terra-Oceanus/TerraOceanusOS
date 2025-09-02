@@ -1,8 +1,11 @@
 //! Command
 
-use crate::traits::FromAddr;
+use crate::memory::Memory;
+
+use super::Error;
 
 pub mod admin;
+pub mod io;
 
 #[repr(C, packed)]
 pub struct Submission {
@@ -67,26 +70,10 @@ pub struct Submission {
     /// Command Dword 15
     cdw15: u32,
 }
+impl Memory for Submission {}
 impl Submission {
-    fn null() -> Self {
-        Self {
-            cdw0: 0,
-            nsid: 0,
-            cdw2: 0,
-            cdw3: 0,
-            mptr: 0,
-            dptr: 0,
-            cdw10: 0,
-            cdw11: 0,
-            cdw12: 0,
-            cdw13: 0,
-            cdw14: 0,
-            cdw15: 0,
-        }
-    }
-
-    pub fn prp1(&self) -> u64 {
-        self.dptr as u64
+    pub fn set_cid(&mut self, cid: u16) {
+        self.cdw0 = (cid as u32) << 16;
     }
 }
 
@@ -103,21 +90,13 @@ pub struct Completion {
     /// - Bit 16: P for Phase Tag
     /// - Bits 17 ..= 31: STATUS for Status
     ///   - Bits 0 ..= 7: SC for Status Code
-    ///     - if SCT is 0x0
-    ///       - 0x00: Successful Completion
     ///   - Bits 8 ..= 10: SCT for Status Code Type
-    ///     - 0x0: Generic Command Status
-    ///     - 0x1: Command Specific Status
-    ///     - 0x2: Media and Data Integrity Errors
-    ///     - 0x3: Path Related Status
-    ///     - 0x4 ..= 0x6: Reserved
-    ///     - 0x7: Vendor Specific
     ///   - Bits 11 ..= 12: CRD for Command Retry Delay
     ///   - Bit 13: M for More
     ///   - Bit 14: DNR for Do Not Retry
     dw3: u32,
 }
-impl FromAddr for Completion {}
+impl Memory for Completion {}
 impl Completion {
     pub fn phase(&self) -> bool {
         ((self.dw3 >> 16) & 0b1) == 1
@@ -127,7 +106,79 @@ impl Completion {
         (self.dw3 >> 17) as u8
     }
 
+    /// Status Code Type
+    /// - 0x0: Generic Command Status
+    /// - 0x1: Command Specific Status
+    /// - 0x2: Media and Data Integrity Errors
+    /// - 0x3: Path Related Status
+    /// - 0x4 ..= 0x6: Reserved
+    /// - 0x7: Vendor Specific
     pub fn sct(&self) -> u8 {
         (((self.dw3 >> 17) >> 8) & 0b111) as u8
+    }
+
+    pub fn gcs_sc_to_str(&self) -> Result<(), Error> {
+        match self.sc() {
+            0x00 => Ok(()),
+            0x01 => Err(Error::Queue("Invalid Command Opcode")),
+            0x02 => Err(Error::Queue("Invalid Field in Command")),
+            0x03 => Err(Error::Queue("Command ID Conflict")),
+            0x04 => Err(Error::Queue("Data Transfer Error")),
+            0x05 => Err(Error::Queue(
+                "Commands Aborted due to Power Loss Notification",
+            )),
+            0x06 => Err(Error::Queue("Internal Error")),
+            0x07 => Err(Error::Queue("Command Abort Requested")),
+            0x08 => Err(Error::Queue("Command Aborted due to SQ Deletion")),
+            0x09 => Err(Error::Queue("Command Aborted due to Failed Fused Command")),
+            0x0A => Err(Error::Queue("Command Aborted due to Missing Fused Command")),
+            0x0B => Err(Error::Queue("Invalid Namespace or Format")),
+            0x0C => Err(Error::Queue("Command Sequence Error")),
+            0x0D => Err(Error::Queue("Invalid SGL Segment Descriptor")),
+            0x0E => Err(Error::Queue("Invalid Number of SGL Descriptors")),
+            0x0F => Err(Error::Queue("Data SGL Length Invalid")),
+            0x10 => Err(Error::Queue("Metadata SGL Length Invalid")),
+            0x11 => Err(Error::Queue("SGL Descriptor Type Invalid")),
+            0x12 => Err(Error::Queue("Invalid Use of Controller Memory Buffer")),
+            0x13 => Err(Error::Queue("PRP Offset Invalid")),
+            0x14 => Err(Error::Queue("Atomic Write Unit Exceeded")),
+            0x15 => Err(Error::Queue("Operation Denied")),
+            0x16 => Err(Error::Queue("SGL Offset Invalid")),
+            0x18 => Err(Error::Queue("Host Identifier Inconsistent Format")),
+            0x19 => Err(Error::Queue("Keep Alive Timer Expired")),
+            0x1A => Err(Error::Queue("Keep Alive Timeout Invalid")),
+            0x1B => Err(Error::Queue("Command Aborted due to Preempt and Abort")),
+            0x1C => Err(Error::Queue("Sanitize Failed")),
+            0x1D => Err(Error::Queue("Sanitize In Progress")),
+            0x1E => Err(Error::Queue("SGL Data Block Granularity Invalid")),
+            0x1F => Err(Error::Queue("Command Not Supported for Queue in CMB")),
+            0x20 => Err(Error::Queue("Namespace is Write Protected")),
+            0x21 => Err(Error::Queue("Command Interrupted")),
+            0x22 => Err(Error::Queue("Transient Transport Error")),
+            0x23 => Err(Error::Queue(
+                "Command Prohibited by Command and Feature Lockdown",
+            )),
+            0x24 => Err(Error::Queue("Admin Command Media Not Ready")),
+            0x25 => Err(Error::Queue("Invalid Key Tag")),
+            0x26 => Err(Error::Queue("Host Dispersed Namespace Support Not Enabled")),
+            0x27 => Err(Error::Queue("Host Identifier Not Initialized")),
+            0x28 => Err(Error::Queue("Incorrect Key")),
+            0x29 => Err(Error::Queue("FDP Disabled")),
+            0x2A => Err(Error::Queue("Invalid Placement Handle List")),
+            0x80 => Err(Error::Queue("LBA Out of Range")),
+            0x81 => Err(Error::Queue("Capacity Exceeded")),
+            0x82 => Err(Error::Queue("Namespace Not Ready")),
+            0x83 => Err(Error::Queue("Reservation Conflict")),
+            0x84 => Err(Error::Queue("Format In Progress")),
+            0x85 => Err(Error::Queue("Invalid Value Size")),
+            0x86 => Err(Error::Queue("Invalid Key Size")),
+            0x87 => Err(Error::Queue("KV Key Does Not Exist")),
+            0x88 => Err(Error::Queue("Unrecovered Error")),
+            0x89 => Err(Error::Queue("Key Exists")),
+            0xC0..=0xFF => Err(Error::Queue("Vendor Specific")),
+            _ => Err(Error::Queue(
+                "Unknown Status Code in Generic Command Status",
+            )),
+        }
     }
 }

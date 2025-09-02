@@ -7,14 +7,14 @@ pub enum Error {
     X86_64(crate::x86_64::Error),
 }
 impl crate::Output for Error {
-    fn output(&self) {
-        "Error: ".output();
+    fn out(&self) {
+        "Error: ".out();
         match self {
-            Error::ACPI(e) => e.output(),
-            Error::Drivers(e) => e.output(),
-            Error::Memory(e) => e.output(),
-            Error::X86_64(e) => e.output(),
+            Error::ACPI(e) => e.out(),
+            Error::Drivers(e) => e.out(),
+            Error::Memory(e) => e.out(),
+            Error::X86_64(e) => e.out(),
         }
-        ".\n".output();
+        ".\n".out();
     }
 }

@@ -147,7 +147,7 @@ impl GateDescriptor {
         }
     }
 
-    fn interrupt(addr: u64) -> Self {
+    fn interrupt(addr: usize) -> Self {
         Self {
             offset_low: addr as u16,
             segment_selector: gdt::SegmentSelector::KernelCode as u16,
@@ -159,7 +159,7 @@ impl GateDescriptor {
         }
     }
 
-    fn trap(addr: u64) -> Self {
+    fn trap(addr: usize) -> Self {
         Self {
             offset_low: addr as u16,
             segment_selector: gdt::SegmentSelector::KernelCode as u16,
@@ -175,51 +175,53 @@ impl GateDescriptor {
 pub fn init() {
     unsafe {
         IDT[Interrupt::DivideError as usize] =
-            GateDescriptor::interrupt(interrupt!(divide_error) as u64);
+            GateDescriptor::interrupt(interrupt!(divide_error) as usize);
         IDT[Interrupt::DebugException as usize] =
-            GateDescriptor::interrupt(interrupt!(debug_exception) as u64);
+            GateDescriptor::interrupt(interrupt!(debug_exception) as usize);
         IDT[Interrupt::NMIInterrupt as usize] =
-            GateDescriptor::interrupt(interrupt!(nmi_interrupt) as u64);
+            GateDescriptor::interrupt(interrupt!(nmi_interrupt) as usize);
         IDT[Interrupt::Breakpoint as usize] =
-            GateDescriptor::interrupt(interrupt!(breakpoint) as u64);
-        IDT[Interrupt::Overflow as usize] = GateDescriptor::interrupt(interrupt!(overflow) as u64);
+            GateDescriptor::interrupt(interrupt!(breakpoint) as usize);
+        IDT[Interrupt::Overflow as usize] =
+            GateDescriptor::interrupt(interrupt!(overflow) as usize);
         IDT[Interrupt::BOUNDRangeExceeded as usize] =
-            GateDescriptor::interrupt(interrupt!(bound_range_exceeded) as u64);
+            GateDescriptor::interrupt(interrupt!(bound_range_exceeded) as usize);
         IDT[Interrupt::InvalidOpcode as usize] =
-            GateDescriptor::interrupt(interrupt!(invalid_opcode) as u64);
+            GateDescriptor::interrupt(interrupt!(invalid_opcode) as usize);
         IDT[Interrupt::DeviceNotAvailable as usize] =
-            GateDescriptor::interrupt(interrupt!(device_not_available) as u64);
+            GateDescriptor::interrupt(interrupt!(device_not_available) as usize);
         IDT[Interrupt::DoubleFault as usize] =
-            GateDescriptor::interrupt(interrupt!(double_fault) as u64);
+            GateDescriptor::interrupt(interrupt!(double_fault) as usize);
         IDT[Interrupt::InvalidTSS as usize] =
-            GateDescriptor::interrupt(interrupt!(invalid_tss) as u64);
+            GateDescriptor::interrupt(interrupt!(invalid_tss) as usize);
         IDT[Interrupt::SegmentNotPresent as usize] =
-            GateDescriptor::interrupt(interrupt!(segment_not_present) as u64);
+            GateDescriptor::interrupt(interrupt!(segment_not_present) as usize);
         IDT[Interrupt::StackSegmentFault as usize] =
-            GateDescriptor::interrupt(interrupt!(stack_segment_fault) as u64);
+            GateDescriptor::interrupt(interrupt!(stack_segment_fault) as usize);
         IDT[Interrupt::GeneralProtection as usize] =
-            GateDescriptor::interrupt(exception!(general_protection) as u64);
+            GateDescriptor::interrupt(exception!(general_protection) as usize);
         IDT[Interrupt::PageFault as usize] =
-            GateDescriptor::interrupt(interrupt!(page_fault) as u64);
+            GateDescriptor::interrupt(interrupt!(page_fault) as usize);
         IDT[Interrupt::X87FPUFloatingPointError as usize] =
-            GateDescriptor::interrupt(interrupt!(x87_fpu_floating_point_error) as u64);
+            GateDescriptor::interrupt(interrupt!(x87_fpu_floating_point_error) as usize);
         IDT[Interrupt::AlignmentCheck as usize] =
-            GateDescriptor::interrupt(interrupt!(alignment_check) as u64);
+            GateDescriptor::interrupt(interrupt!(alignment_check) as usize);
         IDT[Interrupt::MachineCheck as usize] =
-            GateDescriptor::interrupt(interrupt!(machine_check) as u64);
+            GateDescriptor::interrupt(interrupt!(machine_check) as usize);
         IDT[Interrupt::SIMDFloatingPointException as usize] =
-            GateDescriptor::interrupt(interrupt!(simd_floating_point_exception) as u64);
+            GateDescriptor::interrupt(interrupt!(simd_floating_point_exception) as usize);
         IDT[Interrupt::VirtualizationException as usize] =
-            GateDescriptor::interrupt(interrupt!(virtualization_exception) as u64);
+            GateDescriptor::interrupt(interrupt!(virtualization_exception) as usize);
         IDT[Interrupt::ControlProtectionException as usize] =
-            GateDescriptor::interrupt(interrupt!(control_protection_exception) as u64);
-        IDT[Interrupt::Timer as usize] = GateDescriptor::interrupt(interrupt!(timer) as u64);
-        IDT[Interrupt::Keyboard as usize] = GateDescriptor::interrupt(interrupt!(keyboard) as u64);
-        IDT[Interrupt::NVMe as usize] = GateDescriptor::interrupt(interrupt!(nvme) as u64);
+            GateDescriptor::interrupt(interrupt!(control_protection_exception) as usize);
+        IDT[Interrupt::Timer as usize] = GateDescriptor::interrupt(interrupt!(timer) as usize);
+        IDT[Interrupt::Keyboard as usize] =
+            GateDescriptor::interrupt(interrupt!(keyboard) as usize);
+        IDT[Interrupt::NVMe as usize] = GateDescriptor::interrupt(interrupt!(nvme) as usize);
 
         asm!(
             "lidt [{}]",
-            in(reg) &Descriptor::new::<[GateDescriptor; 256]>(addr_of!(IDT) as u64),
+            in(reg) &Descriptor::new::<[GateDescriptor; 256]>(addr_of!(IDT) as usize),
         )
     };
 }

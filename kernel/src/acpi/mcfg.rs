@@ -2,15 +2,15 @@
 
 use core::slice;
 
-use crate::{drivers::pcie, traits::FromAddr};
+use crate::{drivers::pcie, memory::Memory};
 
 use super::{Error, Header};
 
 pub const SIGNATURE: &[u8; 4] = b"MCFG";
 
-static mut ADDR: u64 = 0;
+static mut ADDR: usize = 0;
 
-pub fn set_config(addr: u64) {
+pub fn set_config(addr: usize) {
     unsafe { ADDR = addr }
 }
 
@@ -34,7 +34,7 @@ struct MCFG {
 
     structures: [AllocationStructure; 0],
 }
-impl FromAddr for MCFG {}
+impl Memory for MCFG {}
 impl MCFG {
     fn init(&self) -> Result<(), crate::Error> {
         self.header.init(*SIGNATURE)?;
@@ -46,7 +46,7 @@ impl MCFG {
             )
         } {
             for bus in 0..=(structure.end_pci_bus - structure.start_pci_bus) {
-                let bus_addr = structure.base_address + ((bus as u64) << 20);
+                let bus_addr = structure.base_address as usize + ((bus as usize) << 20);
                 for device in 0..32 {
                     let device_addr = bus_addr + (device << 15);
                     let device_header = pcie::Header::get_ref(device_addr);

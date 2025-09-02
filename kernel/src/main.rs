@@ -8,8 +8,9 @@ mod arch;
 mod drivers;
 mod error;
 mod io;
+mod math;
 mod memory;
-mod traits;
+mod types;
 
 use arch::x86_64;
 use error::Error;
@@ -18,29 +19,29 @@ use io::text::{Output, screen};
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     if let Some(loc) = info.location() {
-        "\nfile: ".output();
-        loc.file().output();
-        " line: ".output();
-        (loc.line() as usize).output();
-        " column: ".output();
-        (loc.column() as usize).output();
+        "\nfile: ".out();
+        loc.file().out();
+        " line: ".out();
+        (loc.line() as usize).out();
+        " column: ".out();
+        (loc.column() as usize).out();
     }
     if let Some(msg) = info.message().as_str() {
-        " msg: ".output();
-        msg.output();
+        " msg: ".out();
+        msg.out();
     }
-    ".\n".output();
+    ".\n".out();
 
     loop {}
 }
 
 #[unsafe(no_mangle)]
 pub extern "C" fn _start() -> ! {
-    let mut frame_buffer_base: u64;
+    let mut frame_buffer_base: usize;
     let mut width: usize;
     let mut height: usize;
     let mut stride: usize;
-    let mut rsdp_addr: u64;
+    let mut rsdp_addr: usize;
     let mut memory_map_entry: usize;
     let mut memory_descriptor_size: usize;
     let mut memory_descriptor_count: usize;
@@ -69,7 +70,7 @@ pub extern "C" fn _start() -> ! {
     ) {
         Ok(_) => {} // screen::clear(),
         Err(e) => {
-            e.output();
+            e.out();
             loop {}
         }
     }
@@ -98,11 +99,11 @@ pub extern "C" fn _start() -> ! {
 }
 
 fn init(
-    frame_buffer_base: u64,
+    frame_buffer_base: usize,
     screen_width: usize,
     screen_height: usize,
     screen_stride: usize,
-    rsdp_addr: u64,
+    rsdp_addr: usize,
     memory_map_entry: usize,
     memory_descriptor_size: usize,
     memory_descriptor_count: usize,

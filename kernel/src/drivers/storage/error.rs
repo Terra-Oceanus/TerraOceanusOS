@@ -2,6 +2,7 @@
 
 pub enum Error {
     NVMe(super::nvme::Error),
+    Partition(super::partition::Error),
 }
 impl From<Error> for super::super::Error {
     fn from(err: Error) -> Self {
@@ -14,10 +15,11 @@ impl From<Error> for crate::Error {
     }
 }
 impl crate::Output for Error {
-    fn output(&self) {
-        "Storage/".output();
+    fn out(&self) {
+        "Storage/".out();
         match self {
-            Error::NVMe(e) => e.output(),
+            Error::NVMe(e) => e.out(),
+            Error::Partition(e) => e.out(),
         }
     }
 }

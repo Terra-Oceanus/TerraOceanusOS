@@ -1,16 +1,16 @@
 //! Frame Buffer
 
-static mut BASE: u64 = 0;
+static mut BASE: usize = 0;
 static mut SIZE: usize = 0;
 
-pub fn set_config(base: u64, size: usize) {
+pub fn set_config(base: usize, size: usize) {
     unsafe {
         BASE = base;
         SIZE = size;
     }
 }
 
-pub fn base() -> u64 {
+pub fn base() -> usize {
     unsafe { BASE }
 }
 

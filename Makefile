@@ -1,19 +1,20 @@
-BOOT_TARGET := x86_64-unknown-uefi
+BOOTLOADER_TARGET := x86_64-unknown-uefi
 KERNEL_TARGET := x86_64-unknown-none
 
 DISK_IMG := disk.img
 BOOT_PART := ESP
-KERNEL_PART := MAIN
+KERNEL_PART := main
 
 all: run
 
 download:
-	rustup run nightly rustc -Z unstable-options --target $(BOOT_TARGET) --print target-spec-json > bootloader/target.json
+	rustup run nightly rustc -Z unstable-options --target $(BOOTLOADER_TARGET) --print target-spec-json > bootloader/target.json
 	rustup run nightly rustc -Z unstable-options --target $(KERNEL_TARGET) --print target-spec-json > kernel/target.json
 
-build:
-	cargo build --manifest-path=bootloader/Cargo.toml --release --target $(BOOT_TARGET)
+build-bootloader:
+	cargo build --manifest-path=bootloader/Cargo.toml --release --target $(BOOTLOADER_TARGET)
 
+build-kernel:
 	RUSTFLAGS=" \
 		-C relocation-model=static \
 		-C link-arg=-no-pie \
@@ -24,37 +25,56 @@ build:
 show: build
 	readelf -l target/$(KERNEL_TARGET)/release/kernel
 
-disk: build
+create-disk:
 	rm -f $(DISK_IMG)
-	dd if=/dev/zero of=$(DISK_IMG) bs=1M count=512
+	dd if=/dev/zero of=$(DISK_IMG) bs=1M count=1024
 
 	parted $(DISK_IMG) --script \
 		mklabel gpt \
-		mkpart $(BOOT_PART) fat32 1MiB 64MiB \
+		\
+		mkpart $(BOOT_PART) fat32 1MiB 255MiB \
 		set 1 esp on \
-		mkpart $(KERNEL_PART) fat32 64MiB 100%
+		\
+		mkpart $(KERNEL_PART) fat32 256MiB 511MiB \
+		\
+		mkpart linux ext4 512MiB 767MiB \
+		\
+		mkpart windows ntfs 768MiB 1023MiB
 
 	@LOOP=$$(sudo losetup -Pf --show $(DISK_IMG)); \
-		sleep 1; \
-		\
+		sudo udevadm settle; \
 		sudo mkfs.vfat -F 32 $${LOOP}p1; \
+		sudo mkfs.vfat -F 32 $${LOOP}p2; \
+		sudo mkfs.ext4 $${LOOP}p3; \
+		sudo mkfs.ntfs -F $${LOOP}p4; \
+		sudo losetup -d $${LOOP}
+
+write-bootloader: build-bootloader
+	@LOOP=$$(sudo losetup -Pf --show $(DISK_IMG)); \
+		sudo udevadm settle; \
+		\
 		mkdir -p mnt/$(BOOT_PART); \
 		sudo mount $${LOOP}p1 mnt/$(BOOT_PART); \
 		sudo mkdir -p mnt/$(BOOT_PART)/EFI/BOOT; \
-		sudo cp target/$(BOOT_TARGET)/release/bootloader.efi mnt/$(BOOT_PART)/EFI/BOOT/BOOTX64.EFI; \
+		sudo cp target/$(BOOTLOADER_TARGET)/release/bootloader.efi mnt/$(BOOT_PART)/EFI/BOOT/BOOTX64.EFI; \
 		sudo umount mnt/$(BOOT_PART); \
 		\
-		sudo mkfs.vfat -F 32 $${LOOP}p2; \
+		sudo losetup -d $${LOOP};
+	rm -rf mnt
+
+write-kernel: build-kernel
+	@LOOP=$$(sudo losetup -Pf --show $(DISK_IMG)); \
+		sudo udevadm settle; \
+		\
 		mkdir -p mnt/$(KERNEL_PART); \
 		sudo mount $${LOOP}p2 mnt/$(KERNEL_PART); \
 		sudo cp target/$(KERNEL_TARGET)/release/kernel mnt/$(KERNEL_PART)/kernel; \
 		sudo umount mnt/$(KERNEL_PART); \
 		\
-		sudo losetup -d $${LOOP}
-
+		sudo losetup -d $${LOOP};
 	rm -rf mnt
 
-debug: disk
+debug:
 	qemu-system-x86_64 \
 		-enable-kvm \
 		-cpu host,-svm \
@@ -69,7 +89,7 @@ debug: disk
 gdb:
 	rust-gdb target/$(KERNEL_TARGET)/release/kernel
 
-run: disk
+run: write-kernel
 	qemu-system-x86_64 \
 		-enable-kvm \
 		-cpu host,-svm \
@@ -78,9 +98,10 @@ run: disk
 		-drive if=pflash,format=raw,readonly=on,file=OVMF/OVMF_CODE_4M.fd \
 		-drive if=pflash,format=raw,readonly=on,file=OVMF/OVMF_VARS_4M.fd \
 		-drive file=$(DISK_IMG),format=raw,if=none,id=nvmedrive \
-		-device nvme,serial=deadbeef,drive=nvmedrive,bus=pcie.0,addr=0x4
+		-device nvme,serial=deadbeef,drive=nvmedrive,bus=pcie.0,addr=0x4 \
+		-trace file=pci.log,enable=pci_*
 
 clean:
 	rm -rf target/
 
-.PHONY: all download build show disk debug gdb run clean
+.PHONY: all download build-bootloader build-kernel show create-disk write-bootloader write-kernel debug gdb run clean

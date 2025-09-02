@@ -163,7 +163,7 @@ pub fn init() {
 
         asm!(
             "lgdt [{}]",
-            in(reg) &Descriptor::new::<Table>(addr_of!(GDT) as u64),
+            in(reg) &Descriptor::new::<Table>(addr_of!(GDT) as usize),
         )
     };
 }

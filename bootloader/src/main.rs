@@ -51,7 +51,7 @@ fn find_kernel() -> Result<RegularFile, Status> {
     Err(Status::LOAD_ERROR)
 }
 
-fn load_kernel() -> Result<u64, Status> {
+fn load_kernel() -> Result<usize, Status> {
     let mut kernel = find_kernel()?;
 
     const HEADER_SIZE: usize = 64;
@@ -103,7 +103,7 @@ fn load_kernel() -> Result<u64, Status> {
             return Err(Status::LOAD_ERROR);
         }
     }
-    Ok(elf.header.pt2.entry_point())
+    Ok(elf.header.pt2.entry_point() as usize)
 }
 
 fn get_graphics_output_config() -> Result<(usize, usize, usize, usize), Status> {
@@ -136,7 +136,7 @@ fn get_graphics_output_config() -> Result<(usize, usize, usize, usize), Status> 
     Ok((frame_buffer_base, width, height, stride))
 }
 
-fn get_rsdp_addr() -> Result<u64, Status> {
+fn get_rsdp_addr() -> Result<usize, Status> {
     let system_table = unsafe { system_table_raw().ok_or(Status::LOAD_ERROR)?.as_ref() };
     for i in 0..system_table.number_of_configuration_table_entries {
         let table = unsafe {
@@ -147,7 +147,7 @@ fn get_rsdp_addr() -> Result<u64, Status> {
                 .ok_or(Status::LOAD_ERROR)?
         };
         if table.vendor_guid == guid!("8868e871-e4f1-11d3-bc22-0080c73c8881") {
-            return Ok(table.vendor_table as u64);
+            return Ok(table.vendor_table as usize);
         }
     }
     Err(Status::LOAD_ERROR)

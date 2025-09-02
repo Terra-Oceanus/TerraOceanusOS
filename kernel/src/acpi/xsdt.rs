@@ -2,13 +2,13 @@
 
 use core::ptr::{addr_of, read_unaligned};
 
-use crate::traits::FromAddr;
+use crate::memory::Memory;
 
 use super::{Error, Header, fadt, madt, mcfg};
 
-static mut ADDR: u64 = 0;
+static mut ADDR: usize = 0;
 
-pub fn set_config(addr: u64) {
+pub fn set_config(addr: usize) {
     unsafe { ADDR = addr }
 }
 
@@ -18,14 +18,14 @@ struct XSDT {
 
     entries: [u64; 0],
 }
-impl FromAddr for XSDT {}
+impl Memory for XSDT {}
 impl XSDT {
     fn init(&self) -> Result<(), Error> {
         self.header.init(*b"XSDT")?;
         let count = (self.header.length as usize - size_of::<Self>()) / size_of::<u64>();
         let entries = addr_of!(self.entries) as *const u64;
         for i in 0..count {
-            let entry = unsafe { read_unaligned(entries.add(i)) };
+            let entry = unsafe { read_unaligned(entries.add(i)) } as usize;
             match &unsafe { &*(entry as *const Header) }.signature {
                 fadt::SIGNATURE => fadt::set_config(entry),
                 madt::SIGNATURE => madt::set_config(entry),
@@ -37,7 +37,7 @@ impl XSDT {
     }
 }
 
-pub fn init(addr: u64) -> Result<(), Error> {
+pub fn init(addr: usize) -> Result<(), Error> {
     if addr == 0 {
         return Err(Error::InvalidAddress);
     }

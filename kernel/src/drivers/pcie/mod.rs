@@ -1,6 +1,6 @@
 //! Peripheral Component Interconnect Express
 
-use crate::{acpi::mcfg, traits::FromAddr};
+use crate::{acpi::mcfg, memory::Memory};
 
 pub mod capabilities;
 pub mod error;
@@ -67,7 +67,7 @@ pub struct Header {
     /// - Bit 7: BIST Capable
     bist: u8,
 }
-impl FromAddr for Header {}
+impl Memory for Header {}
 impl Header {
     pub fn is_present(&self) -> bool {
         self.vendor_id != 0xFFFF
@@ -79,7 +79,7 @@ impl Header {
 
     pub fn handle(&self) -> Result<(), crate::Error> {
         match self.header_type & 0b01111111 {
-            0 => Ok(Type0::get_ref(self as *const Self as u64).handle()),
+            0 => Ok(Type0::get_ref(self as *const _ as usize).handle()),
             1 => Ok(()),
             _ => Err(Error::InvalidHeaderType.into()),
         }
@@ -134,12 +134,12 @@ impl BAR {
         (self.0 >> 1) & 0b11 == 0b10
     }
 
-    fn addr(&self) -> u64 {
+    fn addr(&self) -> usize {
         (if self.is_memory() {
             self.0 >> 4
         } else {
             self.0 >> 2
-        }) as u64
+        }) as usize
     }
 }
 
