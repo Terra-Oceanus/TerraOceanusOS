@@ -4,6 +4,8 @@ use crate::{math::Checksum, memory::Memory};
 
 use super::Error;
 
+const FAKE_SIGNATURE: &[u8; 4] = b"RSDP";
+
 static mut ADDR: usize = 0;
 
 #[repr(C, packed)]
@@ -27,13 +29,13 @@ impl Memory for RSDP1_0 {}
 impl RSDP1_0 {
     fn init(&self) -> Result<(), Error> {
         if self.signature != *b"RSD PTR " {
-            return Err(Error::InvalidSignature);
+            return Err(Error::InvalidSignature(*FAKE_SIGNATURE));
         }
         if !self.checksum(size_of::<Self>()) {
-            return Err(Error::InvalidChecksum);
+            return Err(Error::InvalidChecksum(*FAKE_SIGNATURE));
         }
         if self.revision != 2 {
-            return Err(Error::InvalidRevision);
+            return Err(Error::InvalidRevision(*FAKE_SIGNATURE));
         }
         Ok(())
     }
@@ -57,10 +59,10 @@ impl RSDP {
     fn init(&self) -> Result<usize, Error> {
         self.rsdp1_0.init()?;
         if self.length != size_of::<Self>() as u32 {
-            return Err(Error::InvalidLength);
+            return Err(Error::InvalidLength(*FAKE_SIGNATURE));
         }
         if !self.checksum(self.length as usize) {
-            return Err(Error::InvalidChecksum);
+            return Err(Error::InvalidChecksum(*FAKE_SIGNATURE));
         }
         Ok(self.xsdt_address as usize)
     }
@@ -68,7 +70,7 @@ impl RSDP {
 
 pub fn init(addr: usize) -> Result<usize, Error> {
     if addr == 0 {
-        return Err(Error::InvalidAddress);
+        return Err(Error::InvalidAddress(*FAKE_SIGNATURE));
     }
     unsafe { ADDR = addr };
     RSDP::get_ref(addr).init()

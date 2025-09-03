@@ -352,7 +352,7 @@ impl FADT {
 pub fn init() -> Result<(), Error> {
     unsafe {
         if ADDR == 0 {
-            return Err(Error::InvalidAddress);
+            return Err(Error::InvalidAddress(*SIGNATURE));
         }
         FADT::get_ref(ADDR).init()
     }

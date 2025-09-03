@@ -128,7 +128,7 @@ impl Config {
 pub fn append(addr: u32, base: u32) -> Result<(), Error> {
     unsafe {
         if COUNT == MAX_IO_APIC_COUNT {
-            return Err(Error::MaxCountReached);
+            return Err(Error::InvalidCount);
         }
         IOAPICS[COUNT] = Config { addr, base };
         COUNT += 1;

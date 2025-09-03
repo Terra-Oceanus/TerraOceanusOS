@@ -24,7 +24,7 @@ impl Memory for Type2 {}
 impl Type2 {
     fn handle(&self) -> Result<(), crate::Error> {
         if self.header.length as usize != size_of::<Self>() {
-            return Err(Error::InvalidLength.into());
+            return Err(Error::InvalidLength(*super::super::SIGNATURE).into());
         }
         ioapic::handle_override(
             self.source,

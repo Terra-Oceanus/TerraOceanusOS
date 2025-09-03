@@ -3,7 +3,7 @@
 pub enum Error {
     InvalidGSIIndex,
 
-    MaxCountReached,
+    InvalidCount,
 }
 impl From<Error> for super::super::Error {
     fn from(err: Error) -> Self {
@@ -22,10 +22,10 @@ impl From<Error> for crate::Error {
 }
 impl crate::Output for Error {
     fn out(&self) {
-        "IOAPIC ".out();
+        "/IOAPIC ".out();
         match self {
-            Error::InvalidGSIIndex => "Invalid GSI Index",
-            Error::MaxCountReached => "Max Count Reached",
+            Error::InvalidGSIIndex => "GSI Index",
+            Error::InvalidCount => "Count Overflow",
         }
         .out();
     }

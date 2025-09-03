@@ -113,6 +113,11 @@ impl Output for &str {
         }
     }
 }
+impl Output for [u8] {
+    fn out(&self) {
+        self.iter().for_each(|&c| (c as char).out());
+    }
+}
 
 pub fn init(
     frame_buffer_base: usize,

@@ -22,15 +22,13 @@ impl From<Error> for crate::Error {
 }
 impl crate::Output for Error {
     fn out(&self) {
-        "NVMe ".out();
+        "/NVMe ".out();
         match self {
             Error::InvalidAddress(entity) => {
-                "Invalid ".out();
                 entity.out();
                 " Address"
             }
             Error::InvalidRegisterValue(reg) => {
-                "Invalid ".out();
                 reg.out();
                 " Value"
             }
