@@ -516,7 +516,11 @@ impl NVMe {
     }
 
     fn read_lba(&mut self, start: u64, count: u32, size: usize) -> Result<usize, crate::Error> {
-        let addr = allocate(size)?;
+        let addr = allocate(if count != 0 {
+            count as usize * self.ns.lba_size
+        } else {
+            size
+        })?;
         self.io.next_submission().to_read(
             self.ns.id,
             addr as u64,
