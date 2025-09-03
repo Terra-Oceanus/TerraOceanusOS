@@ -69,7 +69,7 @@ pub extern "C" fn _start() -> ! {
         memory_descriptor_size,
         memory_descriptor_count,
     ) {
-        Ok(_) => {} // screen::clear(),
+        Ok(_) => screen::clear(),
         Err(e) => {
             e.out();
             loop {}

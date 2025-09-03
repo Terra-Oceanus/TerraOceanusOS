@@ -1,25 +1,33 @@
 //! Boot Sector
 
-use crate::{io::text::Output, memory::Memory};
+use crate::memory::Memory;
 
 #[repr(C, packed)]
 pub struct BS {
+    /// Jump instruction to boot code
+    /// - 0xEB 0x?? 0x90
+    /// - 0xE9 0x?? 0x??
     jmp_boot: [u8; 3],
 
     oem_name: [u8; 8],
 
     bpb: BIOSParameterBlock,
 
+    /// Int 0x13 Drive number
     drv_num: u8,
 
     reserved0: u8,
 
+    /// - 0x29
     boot_sig: u8,
 
+    /// Volume serial number
     vol_id: u32,
 
+    /// Volume label
     vol_lab: [u8; 11],
 
+    /// - "FAT32   "
     fil_sys_type: [u8; 8],
 
     reserved1: [u8; 420],
@@ -29,46 +37,88 @@ pub struct BS {
 }
 impl Memory for BS {}
 impl BS {
-    pub fn validate(&self) -> bool {}
+    pub fn validate(&self) -> bool {
+        self.signature == 0xAA55
+    }
 }
 
 #[repr(C, packed)]
 struct BIOSParameterBlock {
+    /// Bytes per sector
+    /// - 512
+    /// - 1024
+    /// - 2048
+    /// - 4096
     byts_per_sec: u16,
 
+    /// Sectors per cluster
+    /// - 1
+    /// - 2
+    /// - 4
+    /// - 8
+    /// - 16
+    /// - 32
+    /// - 64
+    /// - 128
     sec_per_clus: u8,
 
+    /// Count of reserved sectors in Reserved region
+    /// - 32
     rsvd_sec_cnt: u16,
 
+    /// Number of FAT data structures
     num_fats: u8,
 
-    root_ent_cnt: u16,
+    reserved0: u32,
 
-    tot_sec_16: u16,
-
+    /// - 0xF0: Removable
+    /// - 0xF8: Fixed
+    /// - 0xF9
+    /// - 0xFA
+    /// - 0xFB
+    /// - 0xFC
+    /// - 0xFD
+    /// - 0xFE
+    /// - 0xFF
     media: u8,
 
-    fat_sz_16: u16,
+    reserved1: u16,
 
+    /// Sectors per track for Int 0x13
     sec_per_trk: u16,
 
+    /// Number of heads for Int 0x13
     num_heads: u16,
 
+    /// Count of hidden sectors for Int 0x13
     hidd_sec: u32,
 
+    /// Totol count of sectors
     tot_sec_32: u32,
 
+    /// Count of sectors occupied by Self
     fat_sz_32: u32,
 
+    /// - Bits 0 ..= 3: Active FAT number if mirroring is disabled
+    /// - Bits 4 ..= 6: Reserved
+    /// - Bit 7: Mirroring
+    ///   - 0: All FATs are mirrored at runtime
+    ///   - 1: Only the specified active FAT is used
+    /// - Bits 8 ..= 15: Reserved
     ext_flags: u16,
 
+    /// - Bits 0 ..= 7: Minor revision number
+    /// - Bits 8 ..= 15: Major revision number
     fs_ver: u16,
 
+    /// Cluster number of the first cluster of the root directory
     root_clus: u32,
 
+    /// Sector number of FSINFO structure
     fs_info: u16,
 
+    /// Sector number of a copy of the boot record
     bk_boot_sec: u16,
 
-    reserved: [u8; 12],
+    reserved2: [u8; 12],
 }

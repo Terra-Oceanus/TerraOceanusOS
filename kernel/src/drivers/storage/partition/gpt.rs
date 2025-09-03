@@ -20,10 +20,10 @@ struct Header {
 
     reserved: u32,
 
-    /// LBA of this structure
+    /// LBA of self
     my_lba: u64,
 
-    /// LBA of the alternate GPT Header
+    /// LBA of the alternate Self
     alternate_lba: u64,
 
     first_usable_lba: u64,
