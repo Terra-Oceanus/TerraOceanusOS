@@ -1,11 +1,25 @@
 //! File Allocation Table 32
 
-mod bs;
-
-use bs::BS;
-
 use crate::memory::Memory;
 
-pub fn validate(addr: usize) -> bool {
-    BS::get_ref(addr).validate()
+mod bs;
+mod directory;
+mod fsinfo;
+
+use bs::BS;
+use fsinfo::FSI;
+
+pub fn handle(start: u64, addr: usize) -> Result<bool, crate::Error> {
+    let bs = BS::get_ref(addr);
+    let fsi = match bs.validate() {
+        0 => {
+            bs.delete()?;
+            return Ok(false);
+        }
+        sector => FSI::get_ref(crate::drivers::storage::read(start + sector as u64, 1, 0)?),
+    };
+    if !fsi.validate() {
+        return Ok(false);
+    }
+    Ok(true)
 }
