@@ -2,6 +2,7 @@
 
 use crate::memory::Memory;
 
+#[repr(C)]
 pub struct FSI {
     /// - 0x41615252
     lead_sig: u32,

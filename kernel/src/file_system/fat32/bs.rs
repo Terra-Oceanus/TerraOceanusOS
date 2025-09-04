@@ -39,13 +39,14 @@ impl Memory for BS {}
 impl BS {
     pub fn validate(&self) -> u16 {
         if self.signature == 0xAA55
+            && self.bpb.validate()
             && match self.boot_sig {
                 0x29 => self.fil_sys_type == *b"FAT32   ",
                 _ => true,
             }
             && self.reserved0 == 0
         {
-            self.bpb.validate()
+            self.bpb.fs_info
         } else {
             0
         }
@@ -133,8 +134,8 @@ struct BIOSParameterBlock {
     reserved2: [u8; 12],
 }
 impl BIOSParameterBlock {
-    fn validate(&self) -> u16 {
-        if matches!(self.byts_per_sec, 512 | 1024 | 2048 | 4096)
+    fn validate(&self) -> bool {
+        matches!(self.byts_per_sec, 512 | 1024 | 2048 | 4096)
             && matches!(self.sec_per_clus, 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128)
             && self.byts_per_sec as u32 * self.sec_per_clus as u32 <= 32 * 1024
             && self.rsvd_sec_cnt == 32
@@ -147,10 +148,5 @@ impl BIOSParameterBlock {
             && self.reserved0 == 0
             && self.reserved1 == 0
             && self.reserved2 == [0; 12]
-        {
-            self.fs_info
-        } else {
-            0
-        }
     }
 }

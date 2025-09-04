@@ -67,7 +67,11 @@ impl Header {
         }
 
         if lba == 1 {
-            let backup = Self::get_mut(super::super::read(self.alternate_lba, 1, 0)?);
+            let backup = Self::get_mut(super::super::read(
+                self.alternate_lba,
+                0,
+                size_of::<Self>(),
+            )?);
             // let _ = backup.validate(self.alternate_lba)?;
             backup.delete()?;
         } else {
@@ -99,7 +103,7 @@ impl Checksum for PartitionEntry {}
 impl Memory for PartitionEntry {}
 
 pub fn validate() -> Result<(), crate::Error> {
-    let primary = Header::get_mut(super::super::read(1, 1, 0)?);
+    let primary = Header::get_mut(super::super::read(1, 0, size_of::<Header>())?);
     let entries = primary.validate(1)?;
     for i in 0..primary.number_of_partition_entries as usize {
         let entry = PartitionEntry::get_ref(entries + i * primary.size_of_partition_entry as usize);

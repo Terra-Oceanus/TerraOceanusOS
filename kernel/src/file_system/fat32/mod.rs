@@ -9,14 +9,20 @@ mod fsinfo;
 use bs::BS;
 use fsinfo::FSI;
 
-pub fn handle(start: u64, addr: usize) -> Result<bool, crate::Error> {
-    let bs = BS::get_ref(addr);
+pub fn handle(start: u64) -> Result<bool, crate::Error> {
+    use crate::drivers::storage::read;
+
+    let bs = BS::get_ref(read(start, 0, size_of::<BS>())?);
     let fsi = match bs.validate() {
         0 => {
             bs.delete()?;
             return Ok(false);
         }
-        sector => FSI::get_ref(crate::drivers::storage::read(start + sector as u64, 1, 0)?),
+        sector => FSI::get_ref(read(
+            start,
+            sector as usize * bs.sector_bytes(),
+            size_of::<FSI>(),
+        )?),
     };
     if !fsi.validate() {
         return Ok(false);
