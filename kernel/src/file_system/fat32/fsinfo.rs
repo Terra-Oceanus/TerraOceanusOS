@@ -2,7 +2,7 @@
 
 use crate::memory::Memory;
 
-#[repr(C)]
+#[repr(C, packed)]
 pub struct FSI {
     /// - 0x41615252
     lead_sig: u32,
@@ -12,6 +12,11 @@ pub struct FSI {
     /// - 0x61417272
     struc_sig: u32,
 
+    /// Last free cluster
+    /// - 0xFFFFFFFF: Reserved
+    free_count: u32,
+
+    /// Next free cluster
     /// - 0xFFFFFFFF: Reserved
     nxt_free: u32,
 
