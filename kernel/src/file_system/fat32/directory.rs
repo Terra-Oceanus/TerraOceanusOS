@@ -65,6 +65,7 @@ pub struct Entry {
 
     file_size: u32,
 }
+impl Memory for Entry {}
 impl Entry {
     pub fn name(&self) -> &[u8; 11] {
         &self.name
