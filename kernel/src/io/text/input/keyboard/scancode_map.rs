@@ -23,7 +23,11 @@ pub fn map(byte: u8) {
             0x0C => Cursor::out_char(if super::SHIFT { '_' } else { '-' }, true),
             0x0D => Cursor::out_char(if super::SHIFT { '+' } else { '=' }, true),
             0x0E => Cursor::backspace(),
-            0x0F => Cursor::tab(),
+            0x0F => {
+                for _ in 0..4 {
+                    Cursor::space();
+                }
+            }
             0x10 => Cursor::out_char(if upper() { 'Q' } else { 'q' }, true),
             0x11 => Cursor::out_char(if upper() { 'W' } else { 'w' }, true),
             0x12 => Cursor::out_char(if upper() { 'E' } else { 'e' }, true),

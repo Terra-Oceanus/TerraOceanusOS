@@ -97,7 +97,11 @@ impl Output for char {
     fn out(&self) {
         if self.is_ascii_control() {
             match self {
-                '\t' => Cursor::tab(),
+                '\t' => {
+                    for _ in 0..4 {
+                        Cursor::right();
+                    }
+                }
                 '\n' => Cursor::enter(),
                 _ => {}
             }

@@ -170,12 +170,6 @@ impl Cursor {
         unsafe { screen::left(CURSOR.x, CURSOR.y, CURSOR.ptr) };
     }
 
-    pub fn tab() {
-        for _ in 0..4 {
-            Self::space();
-        }
-    }
-
     pub fn enter() {
         unsafe {
             if CURSOR.y + 1 == Self::max_y() {
