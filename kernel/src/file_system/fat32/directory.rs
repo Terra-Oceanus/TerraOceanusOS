@@ -1,9 +1,7 @@
 //! Directory
 
-use crate::io::text::Output;
-
-#[repr(C)]
-struct Entry {
+#[repr(C, packed)]
+pub struct Entry {
     /// Short name
     /// as 8-char name + 3-char extension
     ///
@@ -14,13 +12,13 @@ struct Entry {
     name: [u8; 11],
 
     /// Attributes
-    /// - 0x01: Read only
-    /// - 0x02: Hidden
-    /// - 0x04: System
-    /// - 0x08: Volume ID
-    /// - 0x0F: Long name
-    /// - 0x10: Directory
-    /// - 0x20: Archive
+    /// - Bit 0: Read only
+    /// - Bit 1: Hidden
+    /// - Bit 2: System
+    /// - Bit 3: Volume ID
+    /// - Bit 4: Directory
+    /// - Bit 5: Archive
+    /// - Bits 6 ..= 7: Reserved
     attr: u8,
 
     reserved: u8,
@@ -68,7 +66,15 @@ struct Entry {
     file_size: u32,
 }
 impl Entry {
-    pub fn handle(&self) {
-        self.name.out();
+    pub fn name(&self) -> &[u8; 11] {
+        &self.name
+    }
+
+    pub fn is_dir(&self) -> bool {
+        self.attr & 0b1_0000 != 0
+    }
+
+    pub fn first_cluster(&self) -> usize {
+        ((self.fst_clus_hi as usize) << 16) | self.fst_clus_lo as usize
     }
 }

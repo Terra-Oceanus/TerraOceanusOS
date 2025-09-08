@@ -51,6 +51,27 @@ impl BS {
             0
         }
     }
+
+    pub fn sector_bytes(&self) -> usize {
+        self.bpb.byts_per_sec as usize
+    }
+
+    pub fn cluster_bytes(&self) -> usize {
+        self.bpb.sec_per_clus as usize * self.sector_bytes()
+    }
+
+    fn data_sector_offset(&self) -> usize {
+        (self.bpb.rsvd_sec_cnt as usize + self.bpb.num_fats as usize * self.bpb.fat_sz_32 as usize)
+            * self.sector_bytes()
+    }
+
+    fn cluster_offset(&self, cluster: usize) -> usize {
+        self.data_sector_offset() + (cluster - 2) * self.cluster_bytes()
+    }
+
+    pub fn root_offset(&self) -> usize {
+        self.cluster_offset(self.bpb.root_clus as usize)
+    }
 }
 
 #[repr(C, packed)]
