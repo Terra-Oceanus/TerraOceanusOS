@@ -9,5 +9,7 @@ pub use error::Error;
 
 pub fn init() -> Result<(), crate::Error> {
     pcie::init()?;
-    storage::init()
+    storage::init()?;
+    net::init()?;
+    Ok(())
 }

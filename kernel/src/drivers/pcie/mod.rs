@@ -12,7 +12,8 @@ pub use type0::Type0;
 
 #[repr(C)]
 pub struct Header {
-    /// - 0xFFFF for no Function
+    /// - 0x8086: Intel Corporation
+    /// - 0xFFFF: No Function
     vendor_id: u16,
 
     device_id: u16,
@@ -83,6 +84,14 @@ impl Header {
             1 => Ok(()),
             _ => Err(Error::InvalidHeaderType.into()),
         }
+    }
+
+    pub fn vendor_id(&self) -> u16 {
+        self.vendor_id
+    }
+
+    pub fn device_id(&self) -> u16 {
+        self.device_id
     }
 
     pub fn set_memory_space(&mut self, enable: bool) {

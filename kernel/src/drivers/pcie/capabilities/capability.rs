@@ -1,6 +1,6 @@
 //! Capability
 
-pub const CAPABILITY_ID: u8 = 0x10;
+pub const ID: u8 = 0x10;
 
 #[repr(C)]
 struct Capability {
