@@ -7,7 +7,7 @@ mod acpi;
 mod arch;
 mod drivers;
 mod error;
-mod file_system;
+mod fs;
 mod io;
 mod math;
 mod memory;

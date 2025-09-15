@@ -3,7 +3,7 @@
 pub enum Error {
     ACPI(crate::acpi::Error),
     Drivers(crate::drivers::Error),
-    FileSystem(crate::file_system::Error),
+    FileSystem(crate::fs::Error),
     Memory(crate::memory::Error),
     X86_64(crate::x86_64::Error),
 }

@@ -110,7 +110,7 @@ pub fn validate() -> Result<(), crate::Error> {
         if entry.partition_type_guid == GUID::UNUSED_PARTITION {
             continue;
         }
-        crate::file_system::handle(entry.starting_lba, entry.ending_lba)?;
+        crate::fs::handle(entry.starting_lba, entry.ending_lba)?;
     }
     Ok(())
 }
