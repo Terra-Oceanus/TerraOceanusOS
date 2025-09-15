@@ -1,6 +1,6 @@
 //! Peripheral Component Interconnect Express
 
-use crate::{acpi::mcfg, memory::Memory};
+use crate::{acpi::mcfg, mem::Memory};
 
 pub mod capabilities;
 pub mod error;

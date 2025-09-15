@@ -1,6 +1,6 @@
 //! Fixed ACPI Description Table
 
-use crate::memory::Memory;
+use crate::mem::Memory;
 
 use super::{Error, Header, dsdt, facs};
 

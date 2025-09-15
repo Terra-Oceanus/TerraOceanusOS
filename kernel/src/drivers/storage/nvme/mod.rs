@@ -6,8 +6,8 @@ use crate::{
     drivers::pcie::{self, capabilities::MSIX},
     find_capabilities,
     math::Math,
-    memory::Memory,
-    memory::physical::allocate,
+    mem::Memory,
+    mem::physical::allocate,
 };
 
 mod command;

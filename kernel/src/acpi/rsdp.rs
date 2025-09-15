@@ -1,6 +1,6 @@
 //! Root System Description Pointer
 
-use crate::{math::Checksum, memory::Memory};
+use crate::{math::Checksum, mem::Memory};
 
 use super::Error;
 

@@ -4,7 +4,7 @@ pub enum Error {
     ACPI(crate::acpi::Error),
     Drivers(crate::drivers::Error),
     FileSystem(crate::fs::Error),
-    Memory(crate::memory::Error),
+    Memory(crate::mem::Error),
     X86_64(crate::x86_64::Error),
 }
 impl crate::Output for Error {

@@ -1,6 +1,6 @@
 //! Firmware ACPI Control Structure
 
-use crate::memory::Memory;
+use crate::mem::Memory;
 
 use super::{Error, Header};
 

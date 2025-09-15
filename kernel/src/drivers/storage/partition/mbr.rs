@@ -1,6 +1,6 @@
 //! Master Boot Record
 
-use crate::memory::Memory;
+use crate::mem::Memory;
 
 use super::Error;
 

@@ -1,6 +1,6 @@
 //! Processor Local APIC
 
-use crate::memory::Memory;
+use crate::mem::Memory;
 
 use super::{super::Error, Header};
 

@@ -1,6 +1,6 @@
 //! FSInfo
 
-use crate::memory::Memory;
+use crate::mem::Memory;
 
 #[repr(C, packed)]
 pub struct FSI {

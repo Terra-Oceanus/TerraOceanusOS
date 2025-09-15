@@ -1,6 +1,6 @@
 //! GUID Partition Table
 
-use crate::{math::Checksum, memory::Memory, types::guid::GUID};
+use crate::{math::Checksum, mem::Memory, types::guid::GUID};
 
 use super::Error;
 

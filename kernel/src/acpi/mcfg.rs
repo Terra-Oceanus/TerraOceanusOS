@@ -1,6 +1,6 @@
 //! Memory-Mapped Configuration Space Base Address Description Table
 
-use crate::{drivers::pcie, memory::Memory};
+use crate::{drivers::pcie, mem::Memory};
 
 use super::{Error, Header};
 

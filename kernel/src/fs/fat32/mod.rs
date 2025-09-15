@@ -1,6 +1,6 @@
 //! File Allocation Table 32
 
-use crate::{io::text::Output, memory::Memory};
+use crate::{io::text::Output, mem::Memory};
 
 mod bs;
 mod directory;
