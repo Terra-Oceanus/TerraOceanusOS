@@ -103,18 +103,6 @@ run: write-kernel
 gdb:
 	rust-gdb target/$(KERNEL_TARGET)/release/kernel
 
-run: write-kernel
-	qemu-system-x86_64 \
-		-enable-kvm \
-		-cpu host,-svm \
-		-smp 2 \
-		-machine q35 \
-		-drive if=pflash,format=raw,readonly=on,file=OVMF/OVMF_CODE_4M.fd \
-		-drive if=pflash,format=raw,readonly=on,file=OVMF/OVMF_VARS_4M.fd \
-		-drive file=$(DISK_IMG),format=raw,if=none,id=nvmedrive \
-		-device nvme,serial=deadbeef,drive=nvmedrive,bus=pcie.0,addr=0x4 \
-		-trace file=pci.log,enable=pci_*
-
 clean:
 	rm -rf target/
 
