@@ -64,8 +64,16 @@ impl Type0 {
                 // Non-Volatile Memory Controller
                 0x08 => match self.header.class_code[0] {
                     // NVM Express
-                    0x02 => nvme::set_config(self as *const _ as usize),
+                    0x02 => drivers::storage::nvme::set_config(self as *const _ as usize),
                     _ => {}
+                },
+                _ => {}
+            },
+            // Network Controller
+            0x02 => match self.header.class_code[1] {
+                // Ethernet Controller
+                0x00 => match self.header.class_code[0] {
+                    _ => drivers::net::handle(),
                 },
                 _ => {}
             },

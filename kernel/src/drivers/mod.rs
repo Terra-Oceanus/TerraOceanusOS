@@ -1,6 +1,7 @@
 //! Drivers
 
 mod error;
+pub mod net;
 pub mod pcie;
 pub mod storage;
 
