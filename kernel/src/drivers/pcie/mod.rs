@@ -75,11 +75,11 @@ impl Header {
     }
 
     pub fn is_multi_function(&self) -> bool {
-        (self.header_type & 0b10000000) != 0
+        (self.header_type & 0b1000_0000) != 0
     }
 
     pub fn handle(&self) -> Result<(), crate::Error> {
-        match self.header_type & 0b01111111 {
+        match self.header_type & 0b111_1111 {
             0 => Ok(Type0::get_ref(self as *const _ as usize).handle()),
             1 => Ok(()),
             _ => Err(Error::InvalidHeaderType.into()),

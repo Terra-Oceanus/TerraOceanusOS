@@ -5,7 +5,7 @@ pub enum Error {
 }
 impl From<Error> for crate::Error {
     fn from(err: Error) -> Self {
-        crate::Error::FileSystem(err)
+        crate::Error::FS(err)
     }
 }
 impl crate::Output for Error {

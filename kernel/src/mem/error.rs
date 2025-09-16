@@ -8,7 +8,7 @@ pub enum Error {
 }
 impl From<Error> for crate::Error {
     fn from(err: Error) -> Self {
-        crate::Error::Memory(err)
+        crate::Error::Mem(err)
     }
 }
 impl crate::Output for Error {

@@ -17,13 +17,13 @@ mod queue;
 pub use error::Error;
 use queue::Queue;
 
-static mut NVME: NVMe = NVMe::null();
+static mut DEVICE: Device = Device::null();
 
 pub fn set_config(addr: usize) {
-    unsafe { NVME.pcie_addr = addr };
+    unsafe { DEVICE.pcie_addr = addr };
 }
 
-struct NVMe {
+struct Device {
     pcie_addr: usize,
 
     addr: usize,
@@ -37,7 +37,7 @@ struct NVMe {
 
     ns: Namespace,
 }
-impl NVMe {
+impl Device {
     /// Controller Capabilities
     /// - Bits 0 ..= 15: MQES for Maximum Queue Entries Supported
     /// - Bit 16: CQR for Contiguous Queues Required
@@ -105,7 +105,7 @@ impl NVMe {
     ///   - 0b001: Weighted Round Robin with Urgent Priority Class
     ///   - 0b010 ..= 0b110: Reserved
     ///   - 0b111: Vendor Specific
-    /// - Bits 14 ..= 15: SHN for Shutdown Notification *(R/W)*
+    /// - Bits 14 ..= 15: SHN for Shutdown Notification
     ///   - 0b00: No notification & No effect
     ///   - 0b01: Normal shutdown notification
     ///   - 0b10: Abrupt shutdown notification
@@ -547,9 +547,9 @@ struct Namespace {
 }
 
 pub fn init() -> Result<(), crate::Error> {
-    unsafe { (*(&raw mut NVME)).init() }
+    unsafe { (*(&raw mut DEVICE)).init() }
 }
 
 pub fn read(start: u64, offset: usize, size: usize) -> Result<usize, crate::Error> {
-    unsafe { (*(&raw mut NVME)).read_lba(start, offset, size) }
+    unsafe { (*(&raw mut DEVICE)).read_lba(start, offset, size) }
 }
