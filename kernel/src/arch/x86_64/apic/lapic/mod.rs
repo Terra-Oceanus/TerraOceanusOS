@@ -14,7 +14,7 @@ enum Local {
     /// - Bits 24 ..= 31: ID
     ID = 0x20,
 
-    /// Read-only
+    /// Read-Only
     /// Local APIC Version Register
     /// - Bits 0 ..= 7: Version
     /// - Bits 8 ..= 15: Reserved
@@ -27,11 +27,11 @@ enum Local {
     /// Task Priority Register
     TPR = 0x80,
 
-    /// Read-only
+    /// Read-Only
     /// Arbitration Priority Register
     APR = 0x90,
 
-    /// Read-only
+    /// Read-Only
     /// Processor Priority Register
     PPR = 0xA0,
 
@@ -39,7 +39,7 @@ enum Local {
     /// End of Interrupt Register
     EOI = 0xB0,
 
-    /// Read-only
+    /// Read-Only
     /// Remote Read Register
     RRD = 0xC0,
 
@@ -67,7 +67,7 @@ enum Local {
     /// - Bits 13 ..= 31: Reserved
     SIVR = 0xF0,
 
-    /// Read-only
+    /// Read-Only
     /// In-Service Register
     ISR0 = 0x100,
     ISR1 = 0x110,
@@ -78,7 +78,7 @@ enum Local {
     ISR6 = 0x160,
     ISR7 = 0x170,
 
-    /// Read-only
+    /// Read-Only
     /// Trigger Mode Register
     TMR0 = 0x180,
     TMR1 = 0x190,
@@ -89,7 +89,7 @@ enum Local {
     TMR6 = 0x1E0,
     TMR7 = 0x1F0,
 
-    /// Read-only
+    /// Read-Only
     /// Interrupt Request Register
     IRR0 = 0x200,
     IRR1 = 0x210,
@@ -252,7 +252,7 @@ enum Local {
     /// Timer Initial Count Register
     TICR = 0x380,
 
-    /// Read Only
+    /// Read-Only
     /// Timer Current Count Register
     TCCR = 0x390,
 

@@ -35,7 +35,7 @@ enum Register {
     /// - Bits 28 ..= 31: Reserved
     ID,
 
-    /// Read-only
+    /// Read-Only
     /// IOAPIC Version
     /// - Bits 0 ..= 7: Version
     /// - Bits 8 ..= 15: Reserved
@@ -43,7 +43,7 @@ enum Register {
     /// - Bits 24 ..= 31: Reserved
     Version,
 
-    /// Read-only
+    /// Read-Only
     /// IOAPIC Arbitration ID
     /// - Bits 0 ..= 23: Reserved
     /// - Bits 24 ..= 27: Arbitration ID
