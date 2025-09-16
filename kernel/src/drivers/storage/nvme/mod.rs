@@ -393,7 +393,6 @@ impl NVMe {
             self.msi_x.set_tables(pcie.bar(self.msi_x.table_bir()?));
             self.msi_x
                 .configure(0, crate::x86_64::idt::Interrupt::NVMe as u8)?;
-            self.write(Self::INTMC, 0xFFFFFFFF);
             self.msi_x.enable();
         }
 
