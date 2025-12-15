@@ -7,7 +7,7 @@ KERNEL_PART := main
 
 all: run
 
-download:
+download-targets:
 	rustup run nightly rustc -Z unstable-options --target $(BOOTLOADER_TARGET) --print target-spec-json > bootloader/target.json
 	rustup run nightly rustc -Z unstable-options --target $(KERNEL_TARGET) --print target-spec-json > kernel/target.json
 
@@ -74,9 +74,8 @@ write-kernel: build-kernel
 		sudo losetup -d $${LOOP};
 	rm -rf mnt
 
-update-ovmf:
-	cp -a /usr/share/OVMF/OVMF_CODE_4M.fd OVMF/
-	cp -a /usr/share/OVMF/OVMF_VARS_4M.fd OVMF/
+download-trace-targets:
+	qemu-system-x86_64 -trace help > trace/all-targets
 
 run: write-kernel
 	qemu-system-x86_64 \
@@ -107,10 +106,10 @@ clean:
 	rm -rf target/
 
 .PHONY: all \
-	download \
+	download-targets \
 	build-bootloader build-kernel \
 	show \
 	create-disk write-bootloader write-kernel \
-	update-ovmf \
+	download-trace-targets \
 	run gdb \
 	clean
