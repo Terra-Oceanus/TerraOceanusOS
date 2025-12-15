@@ -1,12 +1,11 @@
 //! Error
 
 pub enum Error {
-    NVMe(super::nvme::Error),
-    Partition(super::partition::Error),
+    InvalidAddress(&'static str),
 }
 impl From<Error> for super::super::Error {
     fn from(err: Error) -> Self {
-        super::super::Error::Storage(err)
+        super::super::Error::Net(err)
     }
 }
 impl From<Error> for crate::Error {
@@ -16,10 +15,13 @@ impl From<Error> for crate::Error {
 }
 impl crate::Output for Error {
     fn out(&self) {
-        "/Storage".out();
+        "/Net ".out();
         match self {
-            Error::NVMe(e) => e.out(),
-            Error::Partition(e) => e.out(),
+            Error::InvalidAddress(entity) => {
+                entity.out();
+                " Address"
+            }
         }
+        .out();
     }
 }

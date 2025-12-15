@@ -15,7 +15,7 @@ impl From<Error> for crate::Error {
 }
 impl crate::Output for Error {
     fn out(&self) {
-        "APIC/".out();
+        "/APIC".out();
         match self {
             Error::IOAPIC(e) => e.out(),
         }

@@ -1,6 +1,6 @@
 //! Peripheral Component Interconnect Express
 
-use crate::{acpi::mcfg, memory::Memory};
+use crate::{acpi::mcfg, mem::Memory};
 
 pub mod capabilities;
 pub mod error;
@@ -12,7 +12,8 @@ pub use type0::Type0;
 
 #[repr(C)]
 pub struct Header {
-    /// - 0xFFFF for no Function
+    /// - 0x8086: Intel Corporation
+    /// - 0xFFFF: No Function
     vendor_id: u16,
 
     device_id: u16,
@@ -74,15 +75,23 @@ impl Header {
     }
 
     pub fn is_multi_function(&self) -> bool {
-        (self.header_type & 0b10000000) != 0
+        (self.header_type & 0b1000_0000) != 0
     }
 
     pub fn handle(&self) -> Result<(), crate::Error> {
-        match self.header_type & 0b01111111 {
+        match self.header_type & 0b111_1111 {
             0 => Ok(Type0::get_ref(self as *const _ as usize).handle()),
             1 => Ok(()),
             _ => Err(Error::InvalidHeaderType.into()),
         }
+    }
+
+    pub fn vendor_id(&self) -> u16 {
+        self.vendor_id
+    }
+
+    pub fn device_id(&self) -> u16 {
+        self.device_id
     }
 
     pub fn set_memory_space(&mut self, enable: bool) {

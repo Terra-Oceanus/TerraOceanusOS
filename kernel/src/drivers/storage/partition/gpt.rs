@@ -1,6 +1,6 @@
 //! GUID Partition Table
 
-use crate::{math::Checksum, memory::Memory, types::guid::GUID};
+use crate::{math::Checksum, mem::Memory, types::guid::GUID};
 
 use super::Error;
 
@@ -20,10 +20,10 @@ struct Header {
 
     reserved: u32,
 
-    /// LBA of this structure
+    /// LBA of self
     my_lba: u64,
 
-    /// LBA of the alternate GPT Header
+    /// LBA of the alternate Self
     alternate_lba: u64,
 
     first_usable_lba: u64,
@@ -60,14 +60,18 @@ impl Header {
 
         let entries_size =
             (self.number_of_partition_entries * self.size_of_partition_entry) as usize;
-        let entries = super::super::read(self.partition_entry_lba, entries_size)?;
+        let entries = super::super::read(self.partition_entry_lba, 0, entries_size)?;
         let entry = PartitionEntry::get_ref(entries);
         if self.partition_entry_array_crc32 != entry.crc32(entries_size) {
             return Err(Error::InvalidGPT("Partition Entry Array CRC32 Checksum").into());
         }
 
         if lba == 1 {
-            let backup = Self::get_mut(super::super::read(self.alternate_lba, 1)?);
+            let backup = Self::get_mut(super::super::read(
+                self.alternate_lba,
+                0,
+                size_of::<Self>(),
+            )?);
             // let _ = backup.validate(self.alternate_lba)?;
             backup.delete()?;
         } else {
@@ -99,13 +103,14 @@ impl Checksum for PartitionEntry {}
 impl Memory for PartitionEntry {}
 
 pub fn validate() -> Result<(), crate::Error> {
-    let primary = Header::get_mut(super::super::read(1, size_of::<Header>())?);
+    let primary = Header::get_mut(super::super::read(1, 0, size_of::<Header>())?);
     let entries = primary.validate(1)?;
     for i in 0..primary.number_of_partition_entries as usize {
         let entry = PartitionEntry::get_ref(entries + i * primary.size_of_partition_entry as usize);
         if entry.partition_type_guid == GUID::UNUSED_PARTITION {
             continue;
         }
+        crate::fs::handle(entry.starting_lba, entry.ending_lba)?;
     }
     Ok(())
 }

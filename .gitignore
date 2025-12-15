@@ -6,4 +6,4 @@
 
 disk.img
 
-*.log
+/trace

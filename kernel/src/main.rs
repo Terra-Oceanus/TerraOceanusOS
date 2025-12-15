@@ -7,9 +7,10 @@ mod acpi;
 mod arch;
 mod drivers;
 mod error;
+mod fs;
 mod io;
 mod math;
-mod memory;
+mod mem;
 mod types;
 
 use arch::x86_64;
@@ -68,7 +69,7 @@ pub extern "C" fn _start() -> ! {
         memory_descriptor_size,
         memory_descriptor_count,
     ) {
-        Ok(_) => {} // screen::clear(),
+        Ok(_) => screen::clear(),
         Err(e) => {
             e.out();
             loop {}
@@ -116,7 +117,7 @@ fn init(
     );
     acpi::init(rsdp_addr)?;
     x86_64::init()?;
-    memory::init(
+    mem::init(
         memory_map_entry,
         memory_descriptor_size,
         memory_descriptor_count,

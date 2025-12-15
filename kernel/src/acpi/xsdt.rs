@@ -2,9 +2,11 @@
 
 use core::ptr::{addr_of, read_unaligned};
 
-use crate::memory::Memory;
+use crate::mem::Memory;
 
 use super::{Error, Header, fadt, madt, mcfg};
+
+const SIGNATURE: &[u8; 4] = b"XSDT";
 
 static mut ADDR: usize = 0;
 
@@ -21,7 +23,7 @@ struct XSDT {
 impl Memory for XSDT {}
 impl XSDT {
     fn init(&self) -> Result<(), Error> {
-        self.header.init(*b"XSDT")?;
+        self.header.init(*SIGNATURE)?;
         let count = (self.header.length as usize - size_of::<Self>()) / size_of::<u64>();
         let entries = addr_of!(self.entries) as *const u64;
         for i in 0..count {
@@ -39,7 +41,7 @@ impl XSDT {
 
 pub fn init(addr: usize) -> Result<(), Error> {
     if addr == 0 {
-        return Err(Error::InvalidAddress);
+        return Err(Error::InvalidAddress(*SIGNATURE));
     }
     unsafe { ADDR = addr };
     XSDT::get_ref(addr).init()

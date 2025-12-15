@@ -2,6 +2,8 @@
 
 use core::slice::from_raw_parts_mut;
 
+use crate::math::Math;
+
 use super::{Error, PAGE_SIZE};
 
 static mut BUDDY_ALLOCATOR: BuddyAllocator = BuddyAllocator::null();
@@ -47,15 +49,7 @@ impl BuddyAllocator {
     pub fn pre_init(memory_size: usize) -> usize {
         unsafe {
             BUDDY_ALLOCATOR.page_count = (memory_size + PAGE_SIZE - 1) / PAGE_SIZE;
-            BUDDY_ALLOCATOR.max_order = {
-                let mut order = 0;
-                let mut pages = BUDDY_ALLOCATOR.page_count;
-                while pages > 1 {
-                    pages >>= 1;
-                    order += 1;
-                }
-                order
-            };
+            BUDDY_ALLOCATOR.max_order = BUDDY_ALLOCATOR.page_count.log2() as u8;
             size_of::<PageInfo>() * BUDDY_ALLOCATOR.page_count
                 + size_of::<usize>() * (BUDDY_ALLOCATOR.max_order as usize + 1)
         }

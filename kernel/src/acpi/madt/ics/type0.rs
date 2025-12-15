@@ -1,6 +1,6 @@
 //! Processor Local APIC
 
-use crate::memory::Memory;
+use crate::mem::Memory;
 
 use super::{super::Error, Header};
 
@@ -21,7 +21,7 @@ impl Memory for Type0 {}
 impl Type0 {
     fn handle(&self) -> Result<(), Error> {
         if self.header.length as usize != size_of::<Self>() {
-            return Err(Error::InvalidLength);
+            return Err(Error::InvalidLength(*super::super::SIGNATURE));
         }
         Ok(())
     }

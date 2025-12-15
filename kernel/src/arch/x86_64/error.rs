@@ -10,7 +10,7 @@ impl From<Error> for crate::Error {
 }
 impl crate::Output for Error {
     fn out(&self) {
-        "x86-64/".out();
+        "x86-64".out();
         match self {
             Error::APIC(e) => e.out(),
         }

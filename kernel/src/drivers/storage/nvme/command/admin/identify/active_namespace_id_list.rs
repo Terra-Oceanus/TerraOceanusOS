@@ -1,6 +1,6 @@
 //! Active Namespace ID list
 
-use crate::memory::Memory;
+use crate::mem::Memory;
 
 use super::super::super::super::Error;
 

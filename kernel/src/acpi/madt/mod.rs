@@ -2,7 +2,7 @@
 
 use core::ptr::{addr_of, read_unaligned};
 
-use crate::{io::port, memory::Memory};
+use crate::{io::port, mem::Memory};
 
 use super::{Error, Header};
 

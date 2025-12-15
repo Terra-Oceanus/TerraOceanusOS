@@ -5,7 +5,7 @@ use core::{
     ptr::{self, write_bytes, write_volatile},
 };
 
-use crate::{memory::Memory, memory::physical::allocate};
+use crate::{mem::Memory, mem::physical::allocate};
 
 use super::super::command::Completion as Command;
 

@@ -1,6 +1,6 @@
 //! Standard Header
 
-use crate::{drivers::storage::nvme, memory::Memory};
+use crate::{drivers, mem::Memory};
 
 use super::Header;
 
@@ -61,10 +61,18 @@ impl Type0 {
         match self.header.class_code[2] {
             // Mass Storage Controller
             0x01 => match self.header.class_code[1] {
-                // Non-Volatile Memory Controller
                 0x08 => match self.header.class_code[0] {
-                    // NVM Express
-                    0x02 => nvme::set_config(self as *const _ as usize),
+                    // NVM Express I/O Controller
+                    0x02 => drivers::storage::nvme::set_config(self as *const _ as usize),
+                    _ => {}
+                },
+                _ => {}
+            },
+            // Network Controller
+            0x02 => match self.header.class_code[1] {
+                0x00 => match self.header.class_code[0] {
+                    // Ethernet Controller
+                    0x00 => drivers::net::set_config(self as *const _ as usize),
                     _ => {}
                 },
                 _ => {}

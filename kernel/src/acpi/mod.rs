@@ -40,10 +40,10 @@ impl Checksum for Header {}
 impl Header {
     fn init(&self, signature: [u8; 4]) -> Result<(), Error> {
         if self.signature != signature {
-            return Err(Error::InvalidSignature);
+            return Err(Error::InvalidSignature(signature));
         }
         if !self.checksum(self.length as usize) {
-            return Err(Error::InvalidChecksum);
+            return Err(Error::InvalidChecksum(signature));
         }
         Ok(())
     }

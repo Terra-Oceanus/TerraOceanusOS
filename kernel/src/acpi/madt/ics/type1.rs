@@ -1,6 +1,6 @@
 //! I/O APIC
 
-use crate::{memory::Memory, x86_64::apic::ioapic};
+use crate::{mem::Memory, x86_64::apic::ioapic};
 
 use super::{super::Error, Header};
 
@@ -20,7 +20,7 @@ impl Memory for Type1 {}
 impl Type1 {
     fn handle(&self) -> Result<(), crate::Error> {
         if self.header.length as usize != size_of::<Self>() {
-            return Err(Error::InvalidLength.into());
+            return Err(Error::InvalidLength(*super::super::SIGNATURE).into());
         }
         let addr = self.io_apic_address;
         let base = self.global_system_interrupt_base;

@@ -2,7 +2,7 @@
 //!
 //! NMI stands for Non-Maskable Interrupt
 
-use crate::memory::Memory;
+use crate::mem::Memory;
 
 use super::{super::Error, Header};
 
@@ -24,7 +24,7 @@ impl Memory for Type4 {}
 impl Type4 {
     fn handle(&self) -> Result<(), Error> {
         if self.header.length as usize != size_of::<Self>() {
-            return Err(Error::InvalidLength);
+            return Err(Error::InvalidLength(*super::super::SIGNATURE));
         }
         Ok(())
     }

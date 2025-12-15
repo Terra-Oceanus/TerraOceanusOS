@@ -22,7 +22,7 @@ build-kernel:
 		" \
 	cargo build --manifest-path=kernel/Cargo.toml --release --target $(KERNEL_TARGET)
 
-show: build
+show: build-kernel
 	readelf -l target/$(KERNEL_TARGET)/release/kernel
 
 create-disk:
@@ -74,34 +74,43 @@ write-kernel: build-kernel
 		sudo losetup -d $${LOOP};
 	rm -rf mnt
 
-debug:
+update-ovmf:
+	cp -a /usr/share/OVMF/OVMF_CODE_4M.fd OVMF/
+	cp -a /usr/share/OVMF/OVMF_VARS_4M.fd OVMF/
+
+run: write-kernel
 	qemu-system-x86_64 \
+		-machine q35 \
+		\
 		-enable-kvm \
 		-cpu host,-svm \
-		-smp 2 \
-		-machine q35 \
+		\
 		-drive if=pflash,format=raw,readonly=on,file=OVMF/OVMF_CODE_4M.fd \
-		-drive if=pflash,format=raw,readonly=on,file=OVMF/OVMF_VARS_4M.fd \
-		-drive file=$(DISK_IMG),format=raw,if=none,id=nvmedrive \
-		-device nvme,serial=deadbeef,drive=nvmedrive,bus=pcie.0,addr=0x4 \
-		-S -s
+		-drive if=pflash,format=raw,file=OVMF/OVMF_VARS_4M.fd \
+		\
+		-drive file=$(DISK_IMG),format=raw,if=none,id=storage \
+		-device nvme,serial=1,drive=storage \
+		\
+		-netdev user,id=net \
+		-device e1000e,netdev=net \
+		\
+		-trace events=trace/targets,file=trace/out
+	@for k in nvme e1000e; do \
+		grep "$$k" trace/out > trace/$$k.log || true; \
+	done
+	@rm -f trace/out
 
 gdb:
 	rust-gdb target/$(KERNEL_TARGET)/release/kernel
 
-run: write-kernel
-	qemu-system-x86_64 \
-		-enable-kvm \
-		-cpu host,-svm \
-		-smp 2 \
-		-machine q35 \
-		-drive if=pflash,format=raw,readonly=on,file=OVMF/OVMF_CODE_4M.fd \
-		-drive if=pflash,format=raw,readonly=on,file=OVMF/OVMF_VARS_4M.fd \
-		-drive file=$(DISK_IMG),format=raw,if=none,id=nvmedrive \
-		-device nvme,serial=deadbeef,drive=nvmedrive,bus=pcie.0,addr=0x4 \
-		-trace file=pci.log,enable=pci_*
-
 clean:
 	rm -rf target/
 
-.PHONY: all download build-bootloader build-kernel show create-disk write-bootloader write-kernel debug gdb run clean
+.PHONY: all \
+	download \
+	build-bootloader build-kernel \
+	show \
+	create-disk write-bootloader write-kernel \
+	update-ovmf \
+	run gdb \
+	clean

@@ -2,7 +2,7 @@
 
 use core::ptr::{self, write_volatile};
 
-use crate::memory::{Memory, physical::allocate};
+use crate::mem::{Memory, physical::allocate};
 
 use super::super::{Error, command::Submission as Command};
 

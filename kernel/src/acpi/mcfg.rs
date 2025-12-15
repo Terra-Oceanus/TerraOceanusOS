@@ -1,8 +1,6 @@
 //! Memory-Mapped Configuration Space Base Address Description Table
 
-use core::slice;
-
-use crate::{drivers::pcie, memory::Memory};
+use crate::{drivers::pcie, mem::Memory};
 
 use super::{Error, Header};
 
@@ -39,7 +37,7 @@ impl MCFG {
     fn init(&self) -> Result<(), crate::Error> {
         self.header.init(*SIGNATURE)?;
         for structure in unsafe {
-            slice::from_raw_parts(
+            core::slice::from_raw_parts(
                 self.structures.as_ptr(),
                 (self.header.length as usize - size_of::<Self>())
                     / size_of::<AllocationStructure>(),
@@ -74,7 +72,7 @@ impl MCFG {
 pub fn init() -> Result<(), crate::Error> {
     unsafe {
         if ADDR == 0 {
-            return Err(Error::InvalidAddress.into());
+            return Err(Error::InvalidAddress(*SIGNATURE).into());
         }
         MCFG::get_ref(ADDR).init()
     }

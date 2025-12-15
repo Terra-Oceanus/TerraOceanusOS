@@ -1,6 +1,6 @@
 //! Master Boot Record
 
-use crate::memory::Memory;
+use crate::mem::Memory;
 
 use super::Error;
 
@@ -71,7 +71,7 @@ impl PartitionRecord {
 }
 
 pub fn validate() -> Result<(), crate::Error> {
-    MBR::get_ref(super::super::read(0, size_of::<MBR>())?)
+    MBR::get_ref(super::super::read(0, 0, size_of::<MBR>())?)
         .validate()?
         .delete()?;
     Ok(())

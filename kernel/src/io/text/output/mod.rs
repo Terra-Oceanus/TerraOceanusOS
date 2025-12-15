@@ -50,7 +50,7 @@ impl Output for u8 {
         for i in (0..8).rev() {
             let bit = ((self >> i) & 1) as u8;
             if zero {
-                if bit == 0 && i != 0 {
+                if bit == 0 {
                     continue;
                 }
                 zero = false;
@@ -75,7 +75,7 @@ impl Output for u64 {
         for i in (0..8).rev() {
             let byte = (self >> (i * 8)) as u8;
             if zero {
-                if byte == 0 && i != 0 {
+                if byte == 0 {
                     continue;
                 }
                 zero = false;
@@ -111,6 +111,11 @@ impl Output for &str {
         for c in self.chars() {
             c.out();
         }
+    }
+}
+impl Output for [u8] {
+    fn out(&self) {
+        self.iter().for_each(|&c| (c as char).out());
     }
 }
 

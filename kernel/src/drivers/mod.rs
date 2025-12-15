@@ -1,12 +1,15 @@
 //! Drivers
 
 mod error;
+pub mod net;
 pub mod pcie;
-mod storage;
+pub mod storage;
 
 pub use error::Error;
 
 pub fn init() -> Result<(), crate::Error> {
     pcie::init()?;
-    storage::init()
+    storage::init()?;
+    net::init()?;
+    Ok(())
 }
